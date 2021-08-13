@@ -33,7 +33,7 @@ clean_data = function(data, vol = 20){
   
 }
 
-palette = rev(brewer.pal(n = 9, name = "RdBu"))
+palette = c("#00003f", rev(brewer.pal(n = 9, name = "RdBu"))[-5])
 
 
 if(length(filename) == 1){
@@ -84,7 +84,7 @@ if(length(filename) == 1){
     geom_point(size = 3) +
     geom_errorbar(aes(ymin = pmax(0,cfu-se), ymax=cfu+se)) +
     theme_bw() +
-    labs(x = "Time (hours)", y = "cfu per mL", colour = "Antibiotic concentration:",
+    labs(x = "Time (hours)", y = "cfu per mL", colour = "Antibiotic concentration (mg/L):",
          title = paste0(bac, " ", abx)) +
     scale_color_manual(values=palette)+
     #scale_color_manual(values=palette(9))+

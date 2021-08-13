@@ -17,7 +17,7 @@ quick_model <- function(parameters, init.state, times) {
     
     link = (1 - B/Bmax)
     
-    dB = mu * link * B - abx_effect * B
+    dB = mu * link * B - abx_effect * mu * B
     
     return(list(dB))
   }
@@ -148,8 +148,9 @@ model_results = rbind(data, model_results)
 ggplot(model_results, aes(time, cfu, colour = as.factor(Concentration), linetype = source)) +
   geom_line(size=1) +
   geom_point(size = 3) +
+  geom_errorbar(aes(ymin = pmax(0,cfu-se), ymax=cfu+se), width = 0.2, size = 1) +
   theme_bw() +
-  labs(x = "Time (hours)", y = "cfu per mL", colour = "Antibiotic concentration:", linetype = "Source:") +
+  labs(x = "Time (hours)", y = "cfu per mL", colour = "Antibiotic concentration (mg/L):", linetype = "Source:") +
   scale_color_manual(values=palette)+
   coord_cartesian(ylim=c(1e1,1e10))+
   scale_y_continuous(trans=log10_trans(),

@@ -1,8 +1,4 @@
 
-library(deSolve)
-library(ggplot2)
-library(scales)
-
 phage_tr_model <- function(parameters, init.state, times, event_dat) {
   
   model_dde <- function(time, state, parameters) {
@@ -18,10 +14,20 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
     alpha = parameters[["alpha"]]
     tau = parameters[["tau"]]
     
-    ery_kill_max = parameters[["ery_kill_max"]]
-    tet_kill_max = parameters[["tet_kill_max"]]
-    EC_ery = parameters[["EC_ery"]]
-    EC_tet = parameters[["EC_tet"]]
+    ery_kill_max_BE = parameters[["ery_kill_max_BE"]]
+    tet_kill_max_BE = parameters[["tet_kill_max_BE"]]
+    EC_ery_BE = parameters[["EC_ery_BE"]]
+    EC_tet_BE = parameters[["EC_tet_BE"]]
+    pow_ery_BE = parameters[["pow_ery_BE"]]
+    pow_tet_BE = parameters[["pow_tet_BE"]]
+    
+    ery_kill_max_BT = parameters[["ery_kill_max_BT"]]
+    tet_kill_max_BT = parameters[["tet_kill_max_BT"]]
+    EC_ery_BT = parameters[["EC_ery_BT"]]
+    EC_tet_BT = parameters[["EC_tet_BT"]]
+    pow_ery_BT = parameters[["pow_ery_BT"]]
+    pow_tet_BT = parameters[["pow_tet_BT"]]
+    
     gamma_tet = parameters[["gamma_tet"]]
     gamma_ery = parameters[["gamma_ery"]]
     
@@ -60,7 +66,6 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
     }
     
     link = (1 - N/Nmax)
-    L = L * link + 1
     
     lambda = (1 - exp(-beta * N))
     phi_Pl = (1 - exp(-lambda * Pl/N))
@@ -72,28 +77,39 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
     phi_Pe_past = (1 - exp(-lambda_past * Pe_past/N_past))
     phi_Pt_past = (1 - exp(-lambda_past * Pt_past/N_past))
     
-    ery_effect = ery_kill_max * ery/(EC_ery+ery)
-    ery_effect = 1 - ery_effect/mu_t
-    tet_effect = tet_kill_max * tet/(EC_tet+tet)
+    ery_effect_BE = ery_kill_max_BE * ery^pow_ery_BE/(EC_ery_BE^pow_ery_BE+ery^pow_ery_BE)
+    tet_effect_BE = tet_kill_max_BE * tet^pow_tet_BE/(EC_tet_BE^pow_tet_BE+tet^pow_tet_BE)
+    ery_effect_BT = ery_kill_max_BT * ery^pow_ery_BT/(EC_ery_BT^pow_ery_BT+ery^pow_ery_BT)
+    tet_effect_BT = tet_kill_max_BT * tet^pow_tet_BT/(EC_tet_BT^pow_tet_BT+tet^pow_tet_BT)
     
-    ery_effect_past = ery_kill_max * ery_past/(EC_ery+ery_past)
-    ery_effect_past = 1 - ery_effect_past/mu_t
-    tet_effect_past = tet_kill_max * tet_past/(EC_tet+tet_past)
+    ery_effect_past_BE = ery_kill_max_BE * ery_past^pow_ery_BE/(EC_ery_BE^pow_ery_BE+ery_past^pow_ery_BE)
+    tet_effect_past_BE = tet_kill_max_BE * tet_past^pow_tet_BE/(EC_tet_BE^pow_tet_BE+tet_past^pow_tet_BE)
+    ery_effect_past_BT = ery_kill_max_BT * ery_past^pow_ery_BT/(EC_ery_BT^pow_ery_BT+ery_past^pow_ery_BT)
+    tet_effect_past_BT = tet_kill_max_BT * tet_past^pow_tet_BT/(EC_tet_BT^pow_tet_BT+tet_past^pow_tet_BT)
     
-    dBe = mu_e * link * (Be - ((phi_Pl + phi_Pt) * Be) ) - (phi_Pl + phi_Pt) * Be - tet_effect*Be
-    dBt = (mu_t * link * ery_effect) * (Bt - ((phi_Pl + phi_Pe) * Bt) ) - (phi_Pl + phi_Pe) * Bt
+    L_ET = L * max(0, (link - tet_effect_BT - ery_effect_BE)) + 1
+    L_E = L * max(0, (link - tet_effect_BE - ery_effect_BE)) + 1
+    L_T = L * max(0, (link - tet_effect_BT - ery_effect_BT)) + 1
+    
+    
+    dBe = (mu_e * link) * (Be - ((phi_Pl + phi_Pt) * Be) ) -
+      (phi_Pl + phi_Pt) * Be -  (tet_effect_BE + ery_effect_BE)*mu_e*Be
+    dBt = (mu_t * link) * (Bt - ((phi_Pl + phi_Pe) * Bt) ) -
+      (phi_Pl + phi_Pe) * Bt - (ery_effect_BT + tet_effect_BT)*mu_t*Bt
     dBet = mu_et * link * (Bet - (phi_Pl*Bet) ) - phi_Pl * Bet +
-      phi_Pe * Bt + phi_Pt * (Be - tet_effect*Be)
+      phi_Pe * Bt + phi_Pt * Be - (ery_effect_BE + tet_effect_BT)*mu_et*Bet
     
-    dPl = phi_Pl_past * L * (1-alpha) * Be_past +
-      phi_Pl_past * L * ery_effect_past * (1-alpha) * Bt_past +
-      phi_Pl_past * L * (1-2*alpha) * Bet_past -
+    #if(time %% 1 == 0) cat(time, phi_Pl, "\n")
+    
+    dPl = phi_Pl_past * L_E * (1-alpha) * Be_past +
+      phi_Pl_past * L_T * (1-alpha) * Bt_past +
+      phi_Pl_past * L_ET * (1-2*alpha) * Bet_past -
       lambda * Pl - gamma * Pl
-    dPe = phi_Pl_past * L * alpha * Be_past +
-      phi_Pl_past * L * alpha * Bet_past -
+    dPe = phi_Pl_past * L_E * alpha * Be_past +
+      phi_Pl_past * L_ET * alpha * Bet_past -
       lambda * Pe - gamma * Pe 
-    dPt = phi_Pl_past * L * ery_effect_past * alpha * Bt_past +
-      phi_Pl_past * L * alpha * Bet_past -
+    dPt = phi_Pl_past * L_T * alpha * Bt_past +
+      phi_Pl_past * L_ET * alpha * Bet_past -
       lambda * Pt - gamma * Pt 
     
     dery = -ery*gamma_ery
@@ -111,65 +127,4 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
   return(trajectory)
   
 }
-
-parameters = c(mu_e = 1.609,
-               mu_t = 1.513,
-               mu_et = 1.445,
-               Nmax = 2.76e9,
-               beta = 1e-10,
-               L = 50,
-               tau = 0.67,
-               alpha = 1e-6,
-               gamma = 0.005,
-               ery_kill_max = 1.513,
-               tet_kill_max = 3,
-               EC_ery = 0.8,
-               EC_tet = 0.8,
-               gamma_ery = 0.1,
-               gamma_tet = 0.1)
-
-times = seq(0, 24, 1)
-
-yinit = c(Be = 1e8,
-          Bt = 1e8,
-          Bet = 0,
-          Pl = 0,
-          Pe = 0,
-          Pt = 0,
-          ery = 0,
-          tet = 0)
-
-event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 10, 10) ,
-                       value = c(10, 10, 1e9),
-                       method = c("add", "add", "add"))
-
-results = phage_tr_model(parameters, yinit, times, event_dat)
-
-ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 3e11)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
-        legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
-                      
 
