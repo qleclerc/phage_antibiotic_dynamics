@@ -2,6 +2,7 @@
 library(deSolve)
 library(ggplot2)
 library(scales)
+library(cowplot)
 
 source(here::here("Model", "model.R"))
 
@@ -44,15 +45,14 @@ yinit = c(Be = 1e9,
           ery = 0,
           tet = 0)
 
-
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 100, 0) ,
+                       time = c(0, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
-
+# value = c(5, 1.2, 1e9)
 results = phage_tr_model(parameters, yinit, times, event_dat)
 
-ggplot(results) +
+p1 = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
   geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
   geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
@@ -63,7 +63,7 @@ ggplot(results) +
   coord_cartesian(ylim = c(0.1, 3e11)) +
   scale_x_continuous(breaks=seq(0,max(results$time),4))+
   theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
+  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "A)") +
   scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
                       values = c("#685cc4","#6db356","#c2484d","#c88a33"),
                       labels = c(expression(B[E]),
@@ -78,3 +78,45 @@ ggplot(results) +
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12))
 
+
+event_dat = data.frame(var = c("ery", "tet", "Pl"),
+                       time = c(0, 0, 100) ,
+                       value = c(5, 1.2, 1e9),
+                       method = c("add", "add", "add"))
+# value = c(5, 1.2, 1e9)
+results = phage_tr_model(parameters, yinit, times, event_dat)
+
+p2 = ggplot(results) +
+  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
+  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
+  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
+  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
+  scale_y_continuous(trans=log10_trans(),
+                     breaks=trans_breaks("log10", function(x) 10^x),
+                     labels=trans_format("log10", math_format(10^.x))) +
+  coord_cartesian(ylim = c(0.1, 3e11)) +
+  scale_x_continuous(breaks=seq(0,max(results$time),4))+
+  theme_bw() +
+  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "B)") +
+  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
+                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
+                      labels = c(expression(B[E]),
+                                 expression(B[T]),
+                                 expression(B[ET]),
+                                 expression(P[L]))) +
+  theme(axis.text.x = element_text(size=12),
+        axis.title.x = element_text(size=12),
+        axis.text.y = element_text(size=12),
+        axis.title.y = element_text(size=12),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        strip.text.x = element_text(size=12))
+
+plot_grid(plot_grid(p1 + theme(legend.position = "none"),
+                    p2 + theme(legend.position = "none")),
+          plot_grid(NULL,get_legend(p1 + theme(legend.position = "bottom")), NULL,
+                    nrow = 1),
+          nrow = 2,
+          rel_heights = c(1,0.1))
+
+ggsave(here::here("Figures", "suppfig2.png"))

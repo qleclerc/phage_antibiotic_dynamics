@@ -99,7 +99,7 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
     dBet = mu_et * link * (Bet - (phi_Pl*Bet) ) - phi_Pl * Bet +
       phi_Pe * Bt + phi_Pt * Be - (ery_effect_BE + tet_effect_BT)*mu_et*Bet
     
-    #if(time %% 1 == 0) cat(time, phi_Pl, "\n")
+    #if(time %% 1 == 0) cat(time, link, "\n")
     
     dPl = phi_Pl_past * L_E * (1-alpha) * Be_past +
       phi_Pl_past * L_T * (1-alpha) * Bt_past +

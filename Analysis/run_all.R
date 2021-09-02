@@ -1,6 +1,7 @@
 
 all_params = data.frame()
 all_data = data.frame()
+all_effects = data.frame()
 
 for(bac in c("327", "201kt7", "drp")){
   for(abx in c("ery", "tet")){
@@ -23,6 +24,10 @@ for(bac in c("327", "201kt7", "drp")){
     model_results$bac = bac
     model_results$abx = abx
     all_data = rbind(all_data, model_results)
+    
+    summary_effect$bac = bac
+    summary_effect$abx = abx
+    all_effects = rbind(all_effects, summary_effect)
     
   }
 }
@@ -56,3 +61,21 @@ ggplot(all_data, aes(time, cfu, colour = as.factor(Concentration), linetype = so
         legend.title = element_text(size=12))  
 
 ggsave(here::here("Figures","fig1.png"), dpi = 600)
+
+
+ggplot(all_effects) +
+  geom_line(aes(Concentration, effect, colour = "Data"), size = 1) +
+  geom_point(aes(Concentration, effect, colour = "Data"), size = 3) +
+  geom_line(aes(Concentration, fitted_effect, colour = "Fitted"), size = 1) +
+  geom_point(aes(Concentration, fitted_effect, colour = "Fitted"), size = 3) +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  labs(x = "Concentration (mg/L)", y = "Kill rate per hour (relative to growth rate)", colour = "Source:") +
+  facet_grid(abx~bac, labeller = labeller(bac = bac_labs, abx = abx_labs)) +
+  theme_bw() +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
+        legend.text = element_text(size=12),
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
+
+ggsave(here::here("Figures","suppfig1.png"), dpi = 600)

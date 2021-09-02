@@ -47,42 +47,6 @@ yinit = c(Be = 1e9,
           ery = 0,
           tet = 0)
 
-## PHAGE ONLY ##########
-
-event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 100, 0) ,
-                       value = c(1, 1, 1e9),
-                       method = c("add", "add", "add"))
-
-results = phage_tr_model(parameters, yinit, times, event_dat)
-
-p_phage = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 3e11)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "Phage only") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
-        legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
-
-
 
 ## ERY ONLY ##########
 
@@ -111,13 +75,11 @@ p_abx_ery = ggplot(results) +
                                  expression(B[T]),
                                  expression(B[ET]),
                                  expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
 
 
 ## TET ONLY ##########
@@ -147,13 +109,11 @@ p_abx_tet = ggplot(results) +
                                  expression(B[T]),
                                  expression(B[ET]),
                                  expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
 
 
 ## ERY AND TET ##########
@@ -183,14 +143,46 @@ p_abx_both = ggplot(results) +
                                  expression(B[T]),
                                  expression(B[ET]),
                                  expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
 
+
+
+## PHAGE ONLY ##########
+
+event_dat = data.frame(var = c("ery", "tet", "Pl"),
+                       time = c(100, 100, 0) ,
+                       value = c(1, 1, 1e9),
+                       method = c("add", "add", "add"))
+
+results = phage_tr_model(parameters, yinit, times, event_dat)
+
+p_phage = ggplot(results) +
+  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
+  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
+  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
+  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
+  scale_y_continuous(trans=log10_trans(),
+                     breaks=trans_breaks("log10", function(x) 10^x),
+                     labels=trans_format("log10", math_format(10^.x))) +
+  coord_cartesian(ylim = c(0.1, 3e11)) +
+  scale_x_continuous(breaks=seq(0,max(results$time),4))+
+  theme_bw() +
+  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "Phage only") +
+  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
+                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
+                      labels = c(expression(B[E]),
+                                 expression(B[T]),
+                                 expression(B[ET]),
+                                 expression(P[L]))) +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
+        legend.text = element_text(size=12),
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
 
 
 ## PHAGE AND ERY ##########
@@ -201,6 +193,7 @@ event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        method = c("add", "add", "add"))
 
 results = phage_tr_model(parameters, yinit, times, event_dat)
+
 
 p_phage_ery = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -220,13 +213,11 @@ p_phage_ery = ggplot(results) +
                                  expression(B[T]),
                                  expression(B[ET]),
                                  expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
 
 
 ## PHAGE AND TET ##########
@@ -237,6 +228,7 @@ event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        method = c("add", "add", "add"))
 
 results = phage_tr_model(parameters, yinit, times, event_dat)
+
 
 p_phage_tet = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -256,13 +248,12 @@ p_phage_tet = ggplot(results) +
                                  expression(B[T]),
                                  expression(B[ET]),
                                  expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
+
 
 
 ## PHAGE AND ERY AND TET ##########
@@ -273,6 +264,7 @@ event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        method = c("add", "add", "add"))
 
 results = phage_tr_model(parameters, yinit, times, event_dat)
+
 
 p_both = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -300,161 +292,16 @@ p_both = ggplot(results) +
 
 
 
-## PHAGE ONLY, TRANSDUCTION ##########
-
-parameters[["alpha"]] = pha_params$alpha
-
-event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 100, 0) ,
-                       value = c(1, 1, 1e9),
-                       method = c("add", "add", "add"))
-
-results = phage_tr_model(parameters, yinit, times, event_dat)
-
-p_phage_tr = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 3e11)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "Phage only w/ transduction") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
-
-
-## PHAGE AND ERY ##########
-
-event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 100, 0) ,
-                       value = c(1, 1, 1e9),
-                       method = c("add", "add", "add"))
-
-results = phage_tr_model(parameters, yinit, times, event_dat)
-
-p_phage_ery_tr = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 3e11)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "Phage and ery w/ transduction") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
-
-
-## PHAGE AND TET ##########
-
-event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 0, 0) ,
-                       value = c(1, 1, 1e9),
-                       method = c("add", "add", "add"))
-
-results = phage_tr_model(parameters, yinit, times, event_dat)
-
-p_phage_tet_tr = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 3e11)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "Phage and tet w/ transduction") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
-
-
-## PHAGE AND ABX, TRANSDUCTION ##########
-
-event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 0, 0) ,
-                       value = c(1, 1, 1e9),
-                       method = c("add", "add", "add"))
-
-results = phage_tr_model(parameters, yinit, times, event_dat)
-
-p_both_tr = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 3e11)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "Phage, ery and tet w/ transduction") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
-        strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
-
-
 ## FINAL PLOT ##########
 
-legend = get_legend(p_both)
-plot_grid(p_phage + theme(legend.position = "none"),
-          p_abx_ery + theme(legend.position = "none"),
+legend = get_legend(p_both + theme(legend.position = "bottom"))
+plot_grid(p_abx_ery + theme(legend.position = "none"),
           p_abx_tet + theme(legend.position = "none"),
           p_abx_both + theme(legend.position = "none"),
-          #
-          legend,
           p_phage_ery + theme(legend.position = "none"),
           p_phage_tet + theme(legend.position = "none"),
           p_both + theme(legend.position = "none"),
-          #
-          p_phage_tr + theme(legend.position = "none"),
-          p_phage_ery_tr + theme(legend.position = "none"),
-          p_phage_tet_tr + theme(legend.position = "none"),
-          p_both_tr + theme(legend.position = "none"),
-          nrow = 3)
+          NULL, legend, NULL,
+          rel_heights = c(1,1,0.1))
 
-ggsave(here::here("Figures", "treatments.png"), width = 12)
+ggsave(here::here("Figures", "treatments_no_tr.png"))

@@ -18,7 +18,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                L = pha_params$L,
                tau = pha_params$tau,
                alpha = pha_params$alpha,
-               gamma = 0.1,
+               gamma = 0,
                ery_kill_max_BE = abx_params$kmax[1],
                ery_kill_max_BT = abx_params$kmax[3],
                tet_kill_max_BE = abx_params$kmax[2],
@@ -31,8 +31,8 @@ parameters = c(mu_e = bac_params$mu_e[1],
                pow_ery_BT = abx_params$pow[3],
                pow_tet_BE = abx_params$pow[2],
                pow_tet_BT = abx_params$pow[4],
-               gamma_ery = 0.05,
-               gamma_tet = 0.05)
+               gamma_ery = 0,
+               gamma_tet = 0)
 
 times = seq(0, 24, 1)
 
@@ -88,53 +88,50 @@ p_duration = ggplot(all_results) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   theme_bw() +
   labs(x = "Antibiotic addition time, relative to phage addition time",
-       y = "Double-resistant bacteria presence time") +
+       y = "Double-resistant bacteria presence time",
+       colour = "Antibiotic\nconcentration\n(mg/L):") +
   scale_x_continuous(breaks = seq(-24,24,4)) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
 
 p_max = ggplot(all_results) +
   geom_line(aes(diff, max_bet, colour = as.factor(abx_con)), size = 0.8) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   theme_bw() +
   labs(x = "Antibiotic addition time, relative to phage addition time",
-       y = "Maximum double-resistant bacteria") +
+       y = "Maximum double-resistant bacteria",
+       colour = "Antibiotic\nconcentration\n(mg/L):") +
   scale_x_continuous(breaks = seq(-24,24,4)) +
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
   coord_cartesian(ylim = c(0.1, 5e6)) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
 
 p_remain = ggplot(all_results) +
   geom_line(aes(diff, end_bacteria, colour = as.factor(abx_con)), size = 0.8) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   theme_bw() +
   labs(x = "Antibiotic addition time, relative to phage addition time",
-       y = "Total remaining bacteria after treatment") +
+       y = "Total remaining bacteria after treatment",
+       colour = "Antibiotic\nconcentration\n(mg/L):") +
   scale_x_continuous(breaks = seq(-24,24,4)) +
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
   coord_cartesian(ylim = c(0.1, 5e6)) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))  
 
 # ggplot(all_results) +
 #   geom_tile(aes(phage_start, abx_start, fill = duration_bet)) +
@@ -146,4 +143,4 @@ p_remain = ggplot(all_results) +
 
 plot_grid(p_duration, p_max, p_remain)
 
-ggsave(here::here("Figures", "timings.png"), height = 8)
+ggsave(here::here("Figures", "timings.png"), height = 8, width = 10)

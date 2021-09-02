@@ -76,7 +76,7 @@ if(length(filename) == 1){
   
   data = data %>%
     group_by(Concentration, time) %>%
-    summarise(se = sd(cfu)/sqrt(length(filename)),
+    summarise(se = sd(cfu),#/sqrt(length(filename)),
               cfu = mean(cfu))
   
   ggplot(data, aes(time, cfu, colour = as.factor(Concentration), group = as.factor(Concentration))) +
