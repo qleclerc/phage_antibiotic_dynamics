@@ -1,4 +1,6 @@
 
+library(dplyr)
+
 all_params = data.frame()
 all_data = data.frame()
 all_effects = data.frame()
@@ -34,6 +36,17 @@ for(bac in c("327", "201kt7", "drp")){
 
 write.csv(all_params, here::here("Parameters", "abx_params.csv"), row.names = F)
 
+accuracy_data = all_data %>%
+  dcast(., Concentration+time+bac+abx+se~source, value.var = "cfu") %>%
+  group_by(Concentration, time, bac, abx) %>%
+  summarise(se = sum(se, na.rm = T),
+            Data = sum(Data, na.rm = T),
+            model = sum(model, na.rm = T)) %>%
+  mutate(in_interval = (model >= (Data-se) & model <= (Data+se))) %>%
+  ungroup %>%
+  group_by(bac, abx) %>%
+  summarise(percent_in = paste0(round(sum(in_interval)/n()*100, 2), "%"))
+
 
 bac_labs = c("NE201KT7", "NE327", "DRP")
 names(bac_labs) = c("201kt7", "327", "drp")
@@ -41,10 +54,11 @@ names(bac_labs) = c("201kt7", "327", "drp")
 abx_labs = c("Erythromycin", "Tetracycline")
 names(abx_labs) = c("ery", "tet")
 
-ggplot(all_data, aes(time, cfu, colour = as.factor(Concentration), linetype = source)) +
-  geom_line(size=1) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = pmax(0,cfu-se), ymax=cfu+se), width = 0.2, size = 1) +
+ggplot() +
+  geom_line(data = all_data, aes(time, cfu, colour = as.factor(Concentration), linetype = source), size=1) +
+  geom_point(data = all_data, aes(time, cfu, colour = as.factor(Concentration)), size = 3) +
+  geom_errorbar(data = all_data, aes(time, cfu, colour = as.factor(Concentration),
+                                     ymin = pmax(0,cfu-se), ymax=cfu+se), width = 0.2, size = 1) +
   facet_grid(abx~bac, labeller = labeller(bac = bac_labs, abx = abx_labs)) +
   theme_bw() +
   labs(x = "Time (hours)", y = "cfu per mL", colour = "Antibiotic\nconcentration\n(mg/L):", linetype = "Source:") +
@@ -58,7 +72,8 @@ ggplot(all_data, aes(time, cfu, colour = as.factor(Concentration), linetype = so
         axis.title = element_text(size=12),
         legend.text = element_text(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  geom_text(data = accuracy_data, mapping = aes(x = 1, y = 1e9, label = percent_in))
 
 ggsave(here::here("Figures","fig1.png"), dpi = 600)
 
