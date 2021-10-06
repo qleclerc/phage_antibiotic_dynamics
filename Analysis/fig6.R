@@ -38,7 +38,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                gamma_ery = 0,
                gamma_tet = 0)
 
-times = seq(0, 24, 1)
+times = seq(0, 24, 0.1)
 
 yinit = c(Be = 1e9,
           Bt = 1e9,
@@ -51,7 +51,7 @@ yinit = c(Be = 1e9,
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 0, 0),
+                       time = c(1, 1, 1),
                        value = c(0, 0, 1e9),
                        method = c("add", "add", "add"))
 
@@ -109,7 +109,7 @@ pa = ggplot(all_results) +
                                 bquote("1 \u00D7 " * 10^-7),
                                 bquote("5 \u00D7 " * 10^-7),
                                 bquote("1 \u00D7 " * 10^-6))) +
-  coord_cartesian(ylim = c(0.1, 1e9)) +
+  coord_cartesian(ylim = c(0.1, 5e9)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
         legend.text = element_text(size=12),
@@ -118,7 +118,7 @@ pa = ggplot(all_results) +
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 0, 0),
+                       time = c(1, 1, 1),
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -176,7 +176,7 @@ pb = ggplot(all_results) +
                                 bquote("1 \u00D7 " * 10^-7),
                                 bquote("5 \u00D7 " * 10^-7),
                                 bquote("1 \u00D7 " * 10^-6))) +
-  coord_cartesian(ylim = c(0.1, 1e9)) +
+  coord_cartesian(ylim = c(0.1, 5e9)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
         legend.text = element_text(size=12),
@@ -188,7 +188,8 @@ plot_grid(plot_grid(pa + theme(legend.position = "none"),
                     ncol = 2,
                     labels = c("a)", "b)")),
           get_legend(pa + guides(linetype = F) + theme(legend.position = "bottom")),
-          get_legend(pa + guides(colour = F) + theme(legend.position = "bottom")),
+          get_legend(pa + guides(colour = F) + theme(legend.position = "bottom",
+                                                     legend.key.width = unit(2, "cm"))),
           nrow = 3,
           rel_heights = c(1,0.1,0.1))
 

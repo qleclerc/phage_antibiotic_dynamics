@@ -33,7 +33,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                gamma_ery = 0,
                gamma_tet = 0)
 
-times = seq(0, 48, 1)
+times = seq(0, 48, 0.1)
 
 yinit = c(Be = 1e9,
           Bt = 1e9,
@@ -46,8 +46,8 @@ yinit = c(Be = 1e9,
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(4, 4, 0),
-                       value = c(1, 1, 1e8),
+                       time = c(1, 1, 1),
+                       value = c(2, 2, 1e9),
                        method = c("add", "add", "add"))
 
 results = phage_tr_model(parameters, yinit, times, event_dat)

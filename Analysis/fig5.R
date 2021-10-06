@@ -37,7 +37,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                gamma_ery = 0,
                gamma_tet = 0)
 
-times = seq(0, 48, 1)
+times = seq(0, 48, 0.1)
 
 yinit = c(Be = 1e9,
           Bt = 1e9,
@@ -51,7 +51,7 @@ yinit = c(Be = 1e9,
 all_results = data.frame()
 
 
-for(abx_con in c(0.5,1,1.5,2,2.5,3)){
+for(abx_con in c(0,0.5,1,2,4,8)){
   
   results_con = data.frame(abx_start = c(rep(1,25), 2:25),
                            phage_start = c(1:25, rep(1,24)),
@@ -72,7 +72,7 @@ for(abx_con in c(0.5,1,1.5,2,2.5,3)){
     
     results_con$max_bet[i] = max(max(results$Bet, na.rm = T), 0.01)
     
-    results_con$duration_bet[i] = sum(results$Bet>1)
+    results_con$duration_bet[i] = sum(results$Bet>1)/10
     
     results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1), 0.01)
     
@@ -95,6 +95,7 @@ p_duration = ggplot(all_results) +
        colour = "Antibiotic\nconcentration\n(mg/L):") +
   scale_x_continuous(breaks = seq(-24,24,4)) +
   scale_color_manual(values = palette) +
+  # scale_color_manual(values = c("grey", "green", "grey", "grey", "grey", "grey")) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
         legend.text = element_text(size=12),
@@ -115,6 +116,7 @@ p_max = ggplot(all_results) +
                                 expression(10^2), expression(10^4), expression(10^6),
                                 expression(10^8), "x")) +
   scale_color_manual(values = palette) +
+  # scale_color_manual(values = c("grey", "green", "grey", "grey", "grey", "grey")) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
@@ -136,6 +138,7 @@ p_remain = ggplot(all_results) +
                                 expression(10^2), expression(10^4), expression(10^6),
                                 expression(10^8), "x")) +
   scale_color_manual(values = palette) +
+  # scale_color_manual(values = c("grey", "green", "grey", "grey", "grey", "grey")) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
@@ -151,7 +154,7 @@ p_remain = ggplot(all_results) +
 #   geom_tile(aes(phage_start, abx_start, fill = log10(max_bet))) +
 #   theme_bw()
 
-pa = plot_grid(p_duration, p_max, p_remain, ncol = 1,
+pa = plot_grid(p_remain, p_max, p_duration, ncol = 1,
                labels = c("a)", "c)", "e)"))
 
 
@@ -179,7 +182,7 @@ for(pha_con in c(10^6, 10^7, 10^8, 10^9, 10^10, 10^11)){
     
     results_con$max_bet[i] = max(max(results$Bet, na.rm = T), 0.01)
     
-    results_con$duration_bet[i] = sum(results$Bet>1)
+    results_con$duration_bet[i] = sum(results$Bet>1)/10
     
     results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1), 0.01)
     
@@ -201,7 +204,7 @@ p_duration = ggplot(all_results) +
        y = "Double-resistant bacteria presence time",
        colour = "Phage\nconcentration\n(pfu/mL):") +
   scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_color_manual(values = palette, 
+  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
                      breaks = c("1e+06", "1e+07", "1e+08", "1e+09", "1e+10", "1e+11"),
                      labels = c(bquote(10^6),
                                 bquote(10^7),
@@ -228,7 +231,7 @@ p_max = ggplot(all_results) +
                      labels = c("x", "0", expression(10^0),
                               expression(10^2), expression(10^4), expression(10^6),
                               expression(10^8), "x")) +
-  scale_color_manual(values = palette, 
+  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
                      breaks = c("1e+06", "1e+07", "1e+08", "1e+09", "1e+10", "1e+11"),
                      labels = c(bquote(10^6),
                                 bquote(10^7),
@@ -256,7 +259,7 @@ p_remain = ggplot(all_results) +
                      labels = c("x", "0", expression(10^0),
                                 expression(10^2), expression(10^4), expression(10^6),
                                 expression(10^8), "x")) +
-  scale_color_manual(values = palette, 
+  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
                      breaks = c("1e+06", "1e+07", "1e+08", "1e+09", "1e+10", "1e+11"),
                      labels = c(bquote(10^6),
                                 bquote(10^7),
@@ -279,7 +282,7 @@ p_remain = ggplot(all_results) +
 #   geom_tile(aes(phage_start, abx_start, fill = log10(max_bet))) +
 #   theme_bw()
 
-pb = plot_grid(p_duration, p_max, p_remain, ncol = 1,
+pb = plot_grid(p_remain, p_max, p_duration, ncol = 1,
                labels = c("b)", "d)", "f)"))
 
 plot_grid(pa, pb, ncol = 2)

@@ -34,7 +34,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                gamma_ery = 0,
                gamma_tet = 0)
 
-times = seq(0, 24, 1)
+times = seq(0, 24, 0.1)
 
 yinit = c(Be = 1e9,
           Bt = 1e9,
@@ -46,7 +46,7 @@ yinit = c(Be = 1e9,
           tet = 0)
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 0, 0) ,
+                       time = c(1, 1, 1) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 # value = c(5, 1.2, 1e9)
@@ -60,7 +60,7 @@ p1 = ggplot(results) +
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 3e11)) +
+  coord_cartesian(ylim = c(0.1, 5e9)) +
   scale_x_continuous(breaks=seq(0,max(results$time),4))+
   theme_bw() +
   labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "A)") +
@@ -80,7 +80,7 @@ p1 = ggplot(results) +
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 0, 100) ,
+                       time = c(1, 1, 100) ,
                        value = c(5, 1.2, 1e9),
                        method = c("add", "add", "add"))
 # value = c(5, 1.2, 1e9)
@@ -94,7 +94,7 @@ p2 = ggplot(results) +
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 3e11)) +
+  coord_cartesian(ylim = c(0.1, 5e9)) +
   scale_x_continuous(breaks=seq(0,max(results$time),4))+
   theme_bw() +
   labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:", title = "B)") +
