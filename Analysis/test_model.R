@@ -173,7 +173,7 @@ results = phage_model(parameters, yinit, times,
                       frequency = FALSE,
                       link_adsorption = FALSE,
                       link_burst = FALSE,
-                      tell_me_more = FALSE)
+                      tell_me_more = TRUE)
 
 # ! ABOUT TELL_ME_MORE !
 #if you set that to TRUE, model will spit out some estimates for each time step

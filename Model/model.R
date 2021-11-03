@@ -28,6 +28,13 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
     pow_ery_BT = parameters[["pow_ery_BT"]]
     pow_tet_BT = parameters[["pow_tet_BT"]]
     
+    ery_kill_max_BET = parameters[["ery_kill_max_BET"]]
+    tet_kill_max_BET = parameters[["tet_kill_max_BET"]]
+    EC_ery_BET = parameters[["EC_ery_BET"]]
+    EC_tet_BET = parameters[["EC_tet_BET"]]
+    pow_ery_BET = parameters[["pow_ery_BET"]]
+    pow_tet_BET = parameters[["pow_tet_BET"]]
+    
     gamma_tet = parameters[["gamma_tet"]]
     gamma_ery = parameters[["gamma_ery"]]
     
@@ -81,13 +88,17 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
     tet_effect_BE = tet_kill_max_BE * tet^pow_tet_BE/(EC_tet_BE^pow_tet_BE+tet^pow_tet_BE)
     ery_effect_BT = ery_kill_max_BT * ery^pow_ery_BT/(EC_ery_BT^pow_ery_BT+ery^pow_ery_BT)
     tet_effect_BT = tet_kill_max_BT * tet^pow_tet_BT/(EC_tet_BT^pow_tet_BT+tet^pow_tet_BT)
+    ery_effect_BET = ery_kill_max_BET * ery^pow_ery_BET/(EC_ery_BET^pow_ery_BET+ery^pow_ery_BET)
+    tet_effect_BET = tet_kill_max_BET * tet^pow_tet_BET/(EC_tet_BET^pow_tet_BET+tet^pow_tet_BET)
     
     ery_effect_past_BE = ery_kill_max_BE * ery_past^pow_ery_BE/(EC_ery_BE^pow_ery_BE+ery_past^pow_ery_BE)
     tet_effect_past_BE = tet_kill_max_BE * tet_past^pow_tet_BE/(EC_tet_BE^pow_tet_BE+tet_past^pow_tet_BE)
     ery_effect_past_BT = ery_kill_max_BT * ery_past^pow_ery_BT/(EC_ery_BT^pow_ery_BT+ery_past^pow_ery_BT)
     tet_effect_past_BT = tet_kill_max_BT * tet_past^pow_tet_BT/(EC_tet_BT^pow_tet_BT+tet_past^pow_tet_BT)
+    ery_effect_past_BET = ery_kill_max_BET * ery_past^pow_ery_BET/(EC_ery_BET^pow_ery_BET+ery_past^pow_ery_BET)
+    tet_effect_past_BET = tet_kill_max_BET * tet_past^pow_tet_BET/(EC_tet_BET^pow_tet_BET+tet_past^pow_tet_BET)
     
-    L_ET = L * max(0, (link - tet_effect_BT - ery_effect_BE)) + 1
+    L_ET = L * max(0, (link - tet_effect_BET - ery_effect_BET)) + 1
     L_E = L * max(0, (link - tet_effect_BE - ery_effect_BE)) + 1
     L_T = L * max(0, (link - tet_effect_BT - ery_effect_BT)) + 1
     
@@ -97,9 +108,9 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
     dBt = (mu_t * link) * (Bt - ((phi_Pl + phi_Pe) * Bt) ) -
       (phi_Pl + phi_Pe) * Bt - (ery_effect_BT + tet_effect_BT)*mu_t*Bt
     dBet = mu_et * link * (Bet - (phi_Pl*Bet) ) - phi_Pl * Bet +
-      phi_Pe * Bt + phi_Pt * Be - (ery_effect_BE + tet_effect_BT)*mu_et*Bet
+      phi_Pe * Bt + phi_Pt * Be - (ery_effect_BET + tet_effect_BET)*mu_et*Bet
     
-    #if(time %% 1 == 0) cat(time, link, "\n")
+    # if(time %% 1 == 0) cat(time, lambda, "\n")
     
     dPl = phi_Pl_past * L_E * (1-alpha) * Be_past +
       phi_Pl_past * L_T * (1-alpha) * Bt_past +

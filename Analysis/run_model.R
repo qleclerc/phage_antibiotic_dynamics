@@ -20,23 +20,29 @@ parameters = c(mu_e = bac_params$mu_e[1],
                gamma = 0,
                ery_kill_max_BE = abx_params$kmax[1],
                ery_kill_max_BT = abx_params$kmax[3],
+               ery_kill_max_BET = abx_params$kmax[5],
                tet_kill_max_BE = abx_params$kmax[2],
                tet_kill_max_BT = abx_params$kmax[4],
+               tet_kill_max_BET = abx_params$kmax[6],
                EC_ery_BE = abx_params$EC50[1],
                EC_ery_BT = abx_params$EC50[3],
+               EC_ery_BET = abx_params$EC50[5],
                EC_tet_BE = abx_params$EC50[2],
                EC_tet_BT = abx_params$EC50[4],
+               EC_tet_BET = abx_params$EC50[6],
                pow_ery_BE = abx_params$pow[1],
                pow_ery_BT = abx_params$pow[3],
+               pow_ery_BET = abx_params$pow[5],
                pow_tet_BE = abx_params$pow[2],
                pow_tet_BT = abx_params$pow[4],
+               pow_tet_BET = abx_params$pow[6],
                gamma_ery = 0,
                gamma_tet = 0)
 
-times = seq(0, 48, 0.1)
+times = seq(0, 24, 0.1)
 
-yinit = c(Be = 1e9,
-          Bt = 1e9,
+yinit = c(Be = 1e7,
+          Bt = 1e7,
           Bet = 0,
           Pl = 0,
           Pe = 0,
@@ -47,7 +53,7 @@ yinit = c(Be = 1e9,
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(1, 1, 1),
-                       value = c(2, 2, 1e9),
+                       value = c(1, 1, 1e7),
                        method = c("add", "add", "add"))
 
 results = phage_tr_model(parameters, yinit, times, event_dat)

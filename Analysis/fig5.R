@@ -7,7 +7,7 @@ library(RColorBrewer)
 
 source(here::here("Model", "model.R"))
 
-palette = brewer.pal(n = 9, name = "BuGn")[4:9]
+palette = brewer.pal(n = 11, name = "BrBG")[c(2,3,9,10)]
 
 abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
 pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
@@ -24,16 +24,22 @@ parameters = c(mu_e = bac_params$mu_e[1],
                gamma = 0,
                ery_kill_max_BE = abx_params$kmax[1],
                ery_kill_max_BT = abx_params$kmax[3],
+               ery_kill_max_BET = abx_params$kmax[5],
                tet_kill_max_BE = abx_params$kmax[2],
                tet_kill_max_BT = abx_params$kmax[4],
+               tet_kill_max_BET = abx_params$kmax[6],
                EC_ery_BE = abx_params$EC50[1],
                EC_ery_BT = abx_params$EC50[3],
+               EC_ery_BET = abx_params$EC50[5],
                EC_tet_BE = abx_params$EC50[2],
                EC_tet_BT = abx_params$EC50[4],
+               EC_tet_BET = abx_params$EC50[6],
                pow_ery_BE = abx_params$pow[1],
                pow_ery_BT = abx_params$pow[3],
+               pow_ery_BET = abx_params$pow[5],
                pow_tet_BE = abx_params$pow[2],
                pow_tet_BT = abx_params$pow[4],
+               pow_tet_BET = abx_params$pow[6],
                gamma_ery = 0,
                gamma_tet = 0)
 
@@ -51,7 +57,7 @@ yinit = c(Be = 1e9,
 all_results = data.frame()
 
 
-for(abx_con in c(0,0.5,1,2,4,8)){
+for(abx_con in c(0.5,1,2,4)){
   
   results_con = data.frame(abx_start = c(rep(1,25), 2:25),
                            phage_start = c(1:25, rep(1,24)),
@@ -161,7 +167,7 @@ pa = plot_grid(p_remain, p_max, p_duration, ncol = 1,
 all_results = data.frame()
 
 
-for(pha_con in c(10^6, 10^7, 10^8, 10^9, 10^10, 10^11)){
+for(pha_con in c(10^7, 10^8, 10^9, 10^10)){
   
   results_con = data.frame(abx_start = c(rep(1,25), 2:25),
                            phage_start = c(1:25, rep(1,24)),
@@ -205,13 +211,11 @@ p_duration = ggplot(all_results) +
        colour = "Phage\nconcentration\n(pfu/mL):") +
   scale_x_continuous(breaks = seq(-24,24,4)) +
   scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+06", "1e+07", "1e+08", "1e+09", "1e+10", "1e+11"),
-                     labels = c(bquote(10^6),
-                                bquote(10^7),
+                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
+                     labels = c(bquote(10^7),
                                 bquote(10^8),
                                 bquote(10^9),
-                                bquote(10^10),
-                                bquote(10^11))) +
+                                bquote(10^10))) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
         legend.text = element_text(size=12),
@@ -232,13 +236,11 @@ p_max = ggplot(all_results) +
                               expression(10^2), expression(10^4), expression(10^6),
                               expression(10^8), "x")) +
   scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+06", "1e+07", "1e+08", "1e+09", "1e+10", "1e+11"),
-                     labels = c(bquote(10^6),
-                                bquote(10^7),
+                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
+                     labels = c(bquote(10^7),
                                 bquote(10^8),
                                 bquote(10^9),
-                                bquote(10^10),
-                                bquote(10^11))) +
+                                bquote(10^10))) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
@@ -260,13 +262,11 @@ p_remain = ggplot(all_results) +
                                 expression(10^2), expression(10^4), expression(10^6),
                                 expression(10^8), "x")) +
   scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+06", "1e+07", "1e+08", "1e+09", "1e+10", "1e+11"),
-                     labels = c(bquote(10^6),
-                                bquote(10^7),
+                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
+                     labels = c(bquote(10^7),
                                 bquote(10^8),
                                 bquote(10^9),
-                                bquote(10^10),
-                                bquote(10^11))) +
+                                bquote(10^10))) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
