@@ -21,7 +21,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                beta = pha_params$beta,
                L = pha_params$L,
                tau = pha_params$tau,
-               alpha = pha_params$alpha,
+               alpha = 0,
                gamma = 0,
                ery_kill_max_BE = abx_params$kmax[1],
                ery_kill_max_BT = abx_params$kmax[3],
@@ -302,6 +302,8 @@ ggsave(here::here("Figures", "fig4.png"), width = 10, height = 11)
 
 
 ### REPEAT FOR OTHER STRAIN ###########
+
+parameters[["alpha"]] = 0
 
 yinit = c(Be = 1e6,
           Bt = 1e9,

@@ -134,7 +134,7 @@ for(i in unique(summary_effect$Concentration)){
   
   results = cbind(rep(i, nrow(results)),
                   results,
-                  rep("model", nrow(results)))
+                  rep("Model", nrow(results)))
   
   colnames(results) = c("Concentration", "time", "cfu", "source")
   

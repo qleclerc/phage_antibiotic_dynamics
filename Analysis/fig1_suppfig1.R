@@ -41,8 +41,8 @@ accuracy_data = all_data %>%
   group_by(Concentration, time, bac, abx) %>%
   summarise(se = sum(se, na.rm = T),
             Data = sum(Data, na.rm = T),
-            model = sum(model, na.rm = T)) %>%
-  mutate(in_interval = (model >= (Data-se) & model <= (Data+se))) %>%
+            Model = sum(Model, na.rm = T)) %>%
+  mutate(in_interval = (Model >= (Data-se) & Model <= (Data+se))) %>%
   ungroup %>%
   group_by(bac, abx) %>%
   summarise(percent_in = paste0(round(sum(in_interval)/n()*100, 2), "%"))
