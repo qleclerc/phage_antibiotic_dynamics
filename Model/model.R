@@ -1,5 +1,5 @@
 
-phage_tr_model <- function(parameters, init.state, times, event_dat) {
+phage_tr_model <- function(parameters, init.state, times, event_dat, phage_activity = FALSE) {
   
   model_dde <- function(time, state, parameters) {
     
@@ -126,7 +126,14 @@ phage_tr_model <- function(parameters, init.state, times, event_dat) {
     dery = -ery*gamma_ery
     dtet = -tet*gamma_tet
     
-    return(list(c(dBe, dBt, dBet, dPl, dPe, dPt, dery, dtet)))
+    if(phage_activity){
+      Bet_lysis = unname(phi_Pl * Bet)
+      Bet_new = unname(mu_et * link * (Bet - (phi_Pl*Bet) ))
+      return(list(c(dBe, dBt, dBet, dPl, dPe, dPt, dery, dtet),
+                  Bet_lysis = Bet_lysis, Bet_new = Bet_new))
+    } else {
+      return(list(c(dBe, dBt, dBet, dPl, dPe, dPt, dery, dtet)))
+    }
   }
   
   trajectory <- data.frame(dede(y = init.state,

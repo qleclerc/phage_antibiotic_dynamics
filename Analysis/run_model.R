@@ -36,15 +36,15 @@ parameters = c(mu_e = bac_params$mu_e[1],
                pow_tet_BE = abx_params$pow[2],
                pow_tet_BT = abx_params$pow[4],
                pow_tet_BET = abx_params$pow[6],
-               gamma_ery = 0,
+               gamma_ery = 0.1,
                gamma_tet = 0)
 
-times = seq(0, 24, 0.1)
+times = seq(0, 48, 0.1)
 
-yinit = c(Be = 0,
-          Bt = 0,
-          Bet = 5e4,
-          Pl = 1e5,
+yinit = c(Be = 1e9,
+          Bt = 1e9,
+          Bet = 0,
+          Pl = 0,
           Pe = 0,
           Pt = 0,
           ery = 0,
@@ -52,11 +52,11 @@ yinit = c(Be = 0,
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 100, 100),
-                       value = c(1, 1, 1e5),
+                       time = c(1, 1, 1),
+                       value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
-results = phage_tr_model(parameters, yinit, times, event_dat)
+results = phage_tr_model(parameters, yinit, times, event_dat, T)
 
 ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -84,3 +84,32 @@ ggplot(results) +
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12))
 
+
+# ggplot(results) +
+#   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
+#   geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
+#   geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
+#   geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
+#   geom_line(aes(time, Bet_lysis, colour = "Bet_l"), size = 0.8) +
+#   geom_line(aes(time, Bet_new, colour = "Bet_n"), size = 0.8) +
+#   scale_y_continuous(trans=log10_trans(),
+#                      breaks=trans_breaks("log10", function(x) 10^x),
+#                      labels=trans_format("log10", math_format(10^.x))) +
+#   coord_cartesian(ylim = c(0.1, 3e11)) +
+#   scale_x_continuous(breaks=seq(0,max(results$time),4))+
+#   theme_bw() +
+#   labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
+#   scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl","Bet_l", "Bet_n"),
+#                       values = c("#685cc4","#6db356","#c2484d","#c88a33", "black", "blue"),
+#                       labels = c(expression(B[E]),
+#                                  expression(B[T]),
+#                                  expression(B[ET]),
+#                                  expression(P[L]),
+#                                  "Bet_l", "Bet_n")) +
+#   theme(axis.text.x = element_text(size=12),
+#         axis.title.x = element_text(size=12),
+#         axis.text.y = element_text(size=12),
+#         axis.title.y = element_text(size=12),
+#         legend.text = element_text(size=12),
+#         legend.title = element_text(size=12),
+#         strip.text.x = element_text(size=12))

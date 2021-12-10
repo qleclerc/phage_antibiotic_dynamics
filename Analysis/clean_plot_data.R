@@ -103,6 +103,6 @@ if(length(filename) == 1){
   
 }
 
-
-ggsave(here::here("Figures", paste0(bac, "_", abx,".png")))
+write.csv(data, here::here("Data", paste0(bac, "_", abx, "_summary.csv")), row.names =F)
+# ggsave(here::here("Figures", paste0(bac, "_", abx,".png")))
 

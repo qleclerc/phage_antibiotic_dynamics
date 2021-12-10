@@ -556,4 +556,4 @@ plot_grid(pa,
           labels = c("a)","", "b)"),
           nrow = 3, rel_heights = c(1,0.05,0.5))
 
-ggsave(here::here("Figures", "supp_fig3.png"), width = 10, height = 11)
+ggsave(here::here("Figures", "suppfig3.png"), width = 10, height = 11)

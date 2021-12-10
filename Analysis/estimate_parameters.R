@@ -117,7 +117,7 @@ ggplot(summary_effect) +
         strip.text.x = element_text(size=12),
         legend.title = element_text(size=12))
 
-ggsave(here::here("Figures", paste0(bac, "_", abx, "_effect.png")))
+# ggsave(here::here("Figures", paste0(bac, "_", abx, "_effect.png")))
 
 model_results = c()
 #summary_effect$fitted_effect = c(0,1.55,1.93,2.41,2.95,3.54,4.15,4.77,5.36)
@@ -165,4 +165,4 @@ ggplot(model_results, aes(time, cfu, colour = as.factor(Concentration), linetype
         strip.text.x = element_text(size=12),
         legend.title = element_text(size=12))
 
-ggsave(here::here("Figures", paste0(bac, "_", abx, "_fitted",".png")))
+# ggsave(here::here("Figures", paste0(bac, "_", abx, "_fitted",".png")))
