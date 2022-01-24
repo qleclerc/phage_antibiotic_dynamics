@@ -52,7 +52,7 @@ yinit = c(Be = 1e9,
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 1),
+                       time = c(0, 0, 0),
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 

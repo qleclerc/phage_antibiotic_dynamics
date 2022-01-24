@@ -58,7 +58,7 @@ yinit = c(Be = 1e9,
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 1),
+                       time = c(0, 0, 0),
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -83,12 +83,12 @@ pa = ggplot(all_results) +
   geom_line(aes(time, Be+Bt, colour = as.factor(tr_param), linetype = "Single-resistant"),
             alpha = 0.5,size = 0.8) +
   geom_hline(yintercept = 1, linetype = "dotted") +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  annotate("segment", x = 1+4, xend = 1, y = 1e4, yend = 1e4) +
-  geom_label(x = 1+4, y = 4, label = "Phage +", size = 3) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  annotate("segment", x = 1+5, xend = 1, y = 1e9, yend = 1e9) +
-  geom_label(x = 1+5, y = 9, label = "Antibiotics +", size = 3) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  annotate("segment", x = 0+4, xend = 0, y = 1e4, yend = 1e4) +
+  geom_label(x = 0+4, y = 4, label = "Phage +", size = 3) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  annotate("segment", x = 0+5, xend = 0, y = 1e9, yend = 1e9) +
+  geom_label(x = 0+5, y = 9, label = "Antibiotics +", size = 3) +
   theme_bw() +
   labs(x = "Time (hours)",
        y = "Double-resistant bacteria (cfu/mL)",
@@ -117,7 +117,7 @@ pa = ggplot(all_results) +
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(11, 11, 1),
+                       time = c(10, 10, 0),
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -142,12 +142,12 @@ pb = ggplot(all_results) +
   geom_line(aes(time, Be+Bt, colour = as.factor(tr_param), linetype = "Single-resistant"),
             alpha = 0.5,size = 0.8) +
   geom_hline(yintercept = 1, linetype = "dotted") +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  annotate("segment", x = 1+4, xend = 1, y = 1e4, yend = 1e4) +
-  geom_label(x = 1+4, y = 4, label = "Phage +", size = 3) +
-  geom_vline(xintercept = 11, linetype = "dashed") +
-  annotate("segment", x = 11+5, xend = 11, y = 1e9, yend = 1e9) +
-  geom_label(x = 11+5, y = 9, label = "Antibiotics +", size = 3) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  annotate("segment", x = 0+4, xend = 0, y = 1e4, yend = 1e4) +
+  geom_label(x = 0+4, y = 4, label = "Phage +", size = 3) +
+  geom_vline(xintercept = 10, linetype = "dashed") +
+  annotate("segment", x = 10+5, xend = 10, y = 1e9, yend = 1e9) +
+  geom_label(x = 10+5, y = 9, label = "Antibiotics +", size = 3) +
   theme_bw() +
   labs(x = "Time (hours)",
        y = "Double-resistant bacteria (cfu/mL)",
@@ -176,7 +176,7 @@ pb = ggplot(all_results) +
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 11),
+                       time = c(0, 0, 10),
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -201,12 +201,12 @@ pc = ggplot(all_results) +
   geom_line(aes(time, Be+Bt, colour = as.factor(tr_param), linetype = "Single-resistant"),
             alpha = 0.5,size = 0.8) +
   geom_hline(yintercept = 1, linetype = "dotted") +
-  geom_vline(xintercept = 11, linetype = "dashed") +
-  annotate("segment", x = 11+4, xend = 11, y = 1e4, yend = 1e4) +
-  geom_label(x = 11+4, y = 4, label = "Phage +", size = 3) +
-  geom_vline(xintercept = 1, linetype = "dashed") +
-  annotate("segment", x = 1+5, xend = 1, y = 1e9, yend = 1e9) +
-  geom_label(x = 1+5, y = 9, label = "Antibiotics +", size = 3) +
+  geom_vline(xintercept = 10, linetype = "dashed") +
+  annotate("segment", x = 10+4, xend = 10, y = 1e4, yend = 1e4) +
+  geom_label(x = 10+4, y = 4, label = "Phage +", size = 3) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  annotate("segment", x = 0+5, xend = 0, y = 1e9, yend = 1e9) +
+  geom_label(x = 0+5, y = 9, label = "Antibiotics +", size = 3) +
   theme_bw() +
   labs(x = "Time (hours)",
        y = "Double-resistant bacteria (cfu/mL)",
@@ -289,7 +289,7 @@ for(i in 1:nrow(all_results)){
   parameters = as.vector(all_results[i,c(1:29)])
   
   event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                         time = c(1, 1, 1),
+                         time = c(0, 0, 0),
                          value = c(1, 1, 1e9),
                          method = c("add", "add", "add"))
   

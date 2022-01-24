@@ -60,8 +60,8 @@ all_results = data.frame()
 
 for(pha_con in c(10^7, 10^8, 10^9, 10^10)){
   
-  results_con = data.frame(abx_start = c(rep(1,25), 2:25),
-                           phage_start = c(1:25, rep(1,24)),
+  results_con = data.frame(abx_start = c(rep(0,25), 1:24),
+                           phage_start = c(0:24, rep(0,24)),
                            max_bet = 0,
                            duration_bet = 0,
                            end_bacteria = 0)
@@ -94,7 +94,7 @@ for(pha_con in c(10^7, 10^8, 10^9, 10^10)){
 
 #things to test
 test_pha_con = 1e8
-test_diffs = c(0,5,7,15)
+test_diffs = c(0,3,5,15)
 
 p_duration = ggplot(all_results) +
   geom_line(aes(diff, duration_bet, colour = as.factor(pha_con)), size = 0.8) +
@@ -114,7 +114,7 @@ p_duration = ggplot(all_results) +
                                 bquote(10^8),
                                 bquote(10^9),
                                 bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,23,24),
+  scale_shape_manual(values = c(21,22,8,24),
                      breaks = as.factor(test_diffs),
                      labels = c("1.", "2.", "3.", "4.")) +
   theme(axis.text = element_text(size=12),
@@ -145,7 +145,7 @@ p_max = ggplot(all_results) +
                                 bquote(10^8),
                                 bquote(10^9),
                                 bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,23,24),
+  scale_shape_manual(values = c(21,22,8,24),
                      breaks = as.factor(test_diffs),
                      labels = c("1.", "2.", "3.", "4.")) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
@@ -177,7 +177,7 @@ p_remain = ggplot(all_results) +
                                 bquote(10^8),
                                 bquote(10^9),
                                 bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,23,24),
+  scale_shape_manual(values = c(21,22,8,24),
                      breaks = as.factor(test_diffs),
                      labels = c("1.", "2.", "3.", "4.")) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
@@ -200,8 +200,8 @@ all_results_abx = data.frame()
 
 for(abx_con in c(0.25, 0.5, 1, 2)){
   
-  results_con = data.frame(abx_start = c(rep(1,25), 2:25),
-                           phage_start = c(1:25, rep(1,24)),
+  results_con = data.frame(abx_start = c(rep(0,25), 1:24),
+                           phage_start = c(0:24, rep(0,24)),
                            max_bet = 0,
                            duration_bet = 0,
                            end_bacteria = 0)
@@ -301,8 +301,8 @@ pa = plot_grid(p_remain + theme(legend.position = "none"),
 
 
 
-abx_time = test_diffs[1]+1
-pha_time = 1 
+abx_time = test_diffs[1]
+pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -354,8 +354,8 @@ p_abx1_pha1 = ggplot(results) +
   geom_point(aes(x=47, y=10^11.5), pch = 21, fill = "black", size = 5)
 
 
-abx_time = test_diffs[2]+1
-pha_time = 1 
+abx_time = test_diffs[2]
+pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -408,8 +408,8 @@ p_abx6_pha1 = ggplot(results) +
 
 
 
-abx_time = test_diffs[3]+1
-pha_time = 1 
+abx_time = test_diffs[3]
+pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -458,12 +458,12 @@ p_abx8_pha1 = ggplot(results) +
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
         plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 23, fill = "black", size = 5)
+  geom_point(aes(x=47, y=10^11.5), pch = 8, fill = "black", size = 5)
 
 
 
-abx_time = test_diffs[4]+1
-pha_time = 1 
+abx_time = test_diffs[4]
+pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -583,8 +583,8 @@ all_results = data.frame()
 
 for(pha_con in c(10^7, 10^8, 10^9, 10^10)){
   
-  results_con = data.frame(abx_start = c(rep(1,25), 2:25),
-                           phage_start = c(1:25, rep(1,24)),
+  results_con = data.frame(abx_start = c(rep(0,25), 1:24),
+                           phage_start = c(0:24, rep(0,24)),
                            max_bet = 0,
                            duration_bet = 0,
                            end_bacteria = 0)
@@ -634,7 +634,7 @@ p_duration = ggplot(all_results) +
                                 bquote(10^8),
                                 bquote(10^9),
                                 bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,23,24),
+  scale_shape_manual(values = c(21,22,8,24),
                      breaks = as.factor(test_diffs),
                      labels = c("1.", "2.", "3.", "4.")) +
   theme(axis.text = element_text(size=12),
@@ -665,7 +665,7 @@ p_max = ggplot(all_results) +
                                 bquote(10^8),
                                 bquote(10^9),
                                 bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,23,24),
+  scale_shape_manual(values = c(21,22,8,24),
                      breaks = as.factor(test_diffs),
                      labels = c("1.", "2.", "3.", "4.")) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
@@ -697,7 +697,7 @@ p_remain = ggplot(all_results) +
                                 bquote(10^8),
                                 bquote(10^9),
                                 bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,23,24),
+  scale_shape_manual(values = c(21,22,8,24),
                      breaks = as.factor(test_diffs),
                      labels = c("1.", "2.", "3.", "4.")) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
@@ -720,8 +720,8 @@ all_results_abx = data.frame()
 
 for(abx_con in c(0.25, 0.5, 1, 2)){
   
-  results_con = data.frame(abx_start = c(rep(1,25), 2:25),
-                           phage_start = c(1:25, rep(1,24)),
+  results_con = data.frame(abx_start = c(rep(0,25), 1:24),
+                           phage_start = c(0:24, rep(0,24)),
                            max_bet = 0,
                            duration_bet = 0,
                            end_bacteria = 0)
@@ -821,8 +821,8 @@ pa = plot_grid(p_remain + theme(legend.position = "none"),
 
 
 
-abx_time = test_diffs[1]+1
-pha_time = 1 
+abx_time = test_diffs[1]
+pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -874,8 +874,8 @@ p_abx1_pha1 = ggplot(results) +
   geom_point(aes(x=47, y=10^11.5), pch = 21, fill = "black", size = 5)
 
 
-abx_time = test_diffs[2]+1
-pha_time = 1 
+abx_time = test_diffs[2]
+pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -928,8 +928,8 @@ p_abx6_pha1 = ggplot(results) +
 
 
 
-abx_time = test_diffs[3]+1
-pha_time = 1 
+abx_time = test_diffs[3]
+pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -978,12 +978,12 @@ p_abx8_pha1 = ggplot(results) +
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
         plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 23, fill = "black", size = 5)
+  geom_point(aes(x=47, y=10^11.5), pch = 8, fill = "black", size = 5)
 
 
 
-abx_time = test_diffs[4]+1
-pha_time = 1 
+abx_time = test_diffs[4]
+pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),

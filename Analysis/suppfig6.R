@@ -53,11 +53,12 @@ yinit = c(Be = 1e9,
           tet = 0)
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 1) ,
+                       time = c(0, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 # value = c(5, 1.2, 1e9)
 results = phage_tr_model(parameters, yinit, times, event_dat)
+results$Pl[results$Pl == 0] = NA
 
 p1 = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -90,6 +91,7 @@ parameters["gamma"] = 0.1
 parameters["gamma_ery"] = 0
 parameters["gamma_tet"] = 0
 results = phage_tr_model(parameters, yinit, times, event_dat)
+results$Pl[results$Pl == 0] = NA
 
 p2 = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -122,6 +124,7 @@ parameters["gamma"] = 0
 parameters["gamma_ery"] = 0.1
 parameters["gamma_tet"] = 0
 results = phage_tr_model(parameters, yinit, times, event_dat)
+results$Pl[results$Pl == 0] = NA
 
 p3 = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -154,6 +157,7 @@ parameters["gamma"] = 0
 parameters["gamma_ery"] = 0
 parameters["gamma_tet"] = 0.1
 results = phage_tr_model(parameters, yinit, times, event_dat)
+results$Pl[results$Pl == 0] = NA
 
 p4 = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +

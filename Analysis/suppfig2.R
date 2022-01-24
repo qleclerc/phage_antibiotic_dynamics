@@ -53,11 +53,12 @@ yinit = c(Be = 1e9,
           tet = 0)
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 1) ,
+                       time = c(0, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 # value = c(5, 1.2, 1e9)
 results = phage_tr_model(parameters, yinit, times, event_dat)
+results$Pl[results$Pl == 0] = NA
 
 p1 = ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -87,18 +88,18 @@ p1 = ggplot(results) +
 
 optim_concentrations = function(concentrations, target){
   event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                         time = c(1, 1, 100) ,
+                         time = c(0, 0, 100) ,
                          value = c(concentrations[1], concentrations[2], 1e9),
                          method = c("add", "add", "add"))
   # value = c(5, 1.2, 1e9)
   results = phage_tr_model(parameters, yinit, times, event_dat) %>%
-    filter(times > 9)
+    filter(times > 6)
 
   sum((results$Be+results$Bt - target)^2)
   
 }
 
-results = results %>% filter(times > 9)
+results = results %>% filter(times > 6)
 opti_concentrations = optim(c(1.1,1.1),
                             optim_concentrations,
                             target = results$Be+results$Bt,
@@ -106,8 +107,9 @@ opti_concentrations = optim(c(1.1,1.1),
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 100) ,
-                       value = c(opti_concentrations$par[1], opti_concentrations$par[2], 1e9),
+                       time = c(0, 0, 100) ,
+                       value = c(4.58, 1.14, 1e9),
+                       #value = c(opti_concentrations$par[1], opti_concentrations$par[2], 1e9),
                        method = c("add", "add", "add"))
 
 cat(opti_concentrations$par[1], opti_concentrations$par[2])

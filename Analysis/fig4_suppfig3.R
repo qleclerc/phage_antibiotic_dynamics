@@ -74,7 +74,7 @@ all_results = rbind(all_results, results)
 ## PHAGE ONLY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 100, 1) ,
+                       time = c(100, 100, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -88,7 +88,7 @@ all_results = rbind(all_results, results)
 ## ERY ONLY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 100, 100) ,
+                       time = c(0, 100, 100) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -102,7 +102,7 @@ all_results = rbind(all_results, results)
 ## TET ONLY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 1, 100) ,
+                       time = c(100, 0, 100) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -116,7 +116,7 @@ all_results = rbind(all_results, results)
 ## ERY AND TET ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 100) ,
+                       time = c(0, 0, 100) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -130,7 +130,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND ERY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 100, 1) ,
+                       time = c(0, 100, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -144,7 +144,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND TET ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 1, 1) ,
+                       time = c(100, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -158,7 +158,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND ERY AND TET ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 1) ,
+                       time = c(0, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -175,7 +175,7 @@ all_results = rbind(all_results, results)
 parameters[["alpha"]] = pha_params$alpha
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 100, 1) ,
+                       time = c(100, 100, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -189,7 +189,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND ERY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 100, 1) ,
+                       time = c(0, 100, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -203,7 +203,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND TET ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 1, 1) ,
+                       time = c(100, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -217,7 +217,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND ABX, TRANSDUCTION ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 1) ,
+                       time = c(0, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -266,10 +266,13 @@ pa = ggplot(all_results) +
 all_results2 = all_results %>%
   filter(pha == "Phage w/ transduction") %>%
   select(-c("Pe", "Pt", "ery", "tet")) %>%
+  mutate(tot = Be+Bt+Bet) %>%
   reshape2::melt(. , id.vars = c("time","pha","abx"))
 
-bac_labs = c("Ery-resistant", "Tet-resistant", "Double-resistant", "Phage")
-names(bac_labs) = c("Be", "Bt", "Bet", "Pl")
+all_results2$variable = factor(all_results2$variable, levels = levels(all_results2$variable)[c(5,1,2,3,4)])
+
+bac_labs = c("Total bacteria", "Ery-resistant", "Tet-resistant", "Double-resistant", "Phage")
+names(bac_labs) = c("tot", "Be", "Bt", "Bet", "Pl")
 
 pb = ggplot(all_results2) +
   geom_line(aes(time, value, colour = abx), size = 1, alpha = 0.6) +
@@ -333,7 +336,7 @@ all_results = rbind(all_results, results)
 ## PHAGE ONLY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 100, 1) ,
+                       time = c(100, 100, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -347,7 +350,7 @@ all_results = rbind(all_results, results)
 ## ERY ONLY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 100, 100) ,
+                       time = c(0, 100, 100) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -361,7 +364,7 @@ all_results = rbind(all_results, results)
 ## TET ONLY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 1, 100) ,
+                       time = c(100, 0, 100) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -375,7 +378,7 @@ all_results = rbind(all_results, results)
 ## ERY AND TET ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 100) ,
+                       time = c(0, 0, 100) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -389,7 +392,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND ERY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 100, 1) ,
+                       time = c(0, 100, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -403,7 +406,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND TET ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 1, 1) ,
+                       time = c(100, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -417,7 +420,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND ERY AND TET ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 1) ,
+                       time = c(0, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -434,7 +437,7 @@ all_results = rbind(all_results, results)
 parameters[["alpha"]] = pha_params$alpha
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 100, 1) ,
+                       time = c(100, 100, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -448,7 +451,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND ERY ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 100, 1) ,
+                       time = c(0, 100, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -462,7 +465,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND TET ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(100, 1, 1) ,
+                       time = c(100, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -476,7 +479,7 @@ all_results = rbind(all_results, results)
 ## PHAGE AND ABX, TRANSDUCTION ##########
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(1, 1, 1) ,
+                       time = c(0, 0, 0) ,
                        value = c(1, 1, 1e9),
                        method = c("add", "add", "add"))
 
@@ -525,10 +528,13 @@ pa = ggplot(all_results) +
 all_results2 = all_results %>%
   filter(pha == "Phage w/ transduction") %>%
   select(-c("Pe", "Pt", "ery", "tet")) %>%
+  mutate(tot = Be+Bt+Bet) %>%
   reshape2::melt(. , id.vars = c("time","pha","abx"))
 
-bac_labs = c("Ery-resistant", "Tet-resistant", "Double-resistant", "Phage")
-names(bac_labs) = c("Be", "Bt", "Bet", "Pl")
+all_results2$variable = factor(all_results2$variable, levels = levels(all_results2$variable)[c(5,1,2,3,4)])
+
+bac_labs = c("Total bacteria", "Ery-resistant", "Tet-resistant", "Double-resistant", "Phage")
+names(bac_labs) = c("tot", "Be", "Bt", "Bet", "Pl")
 
 pb = ggplot(all_results2) +
   geom_line(aes(time, value, colour = abx), size = 1, alpha = 0.6) +
