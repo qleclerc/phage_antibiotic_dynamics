@@ -48,7 +48,7 @@ accuracy_data = all_data %>%
   summarise(percent_in = paste0(round(sum(in_interval)/n()*100, 2), "%"))
 
 
-bac_labs = c("NE201KT7", "NE327", "DRP")
+bac_labs = c("NE201KT7", "NE327", "DRPET1")
 names(bac_labs) = c("201kt7", "327", "drp")
 
 abx_labs = c("Erythromycin", "Tetracycline")

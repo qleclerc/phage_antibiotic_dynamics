@@ -1,198 +1,89 @@
 
-library(deSolve)
+library(openxlsx)
 library(ggplot2)
 library(scales)
-library(cowplot)
+library(reshape2)
+library(RColorBrewer)
 library(dplyr)
 
-source(here::here("Model", "model.R"))
+clean_data = function(data, vol = 20){
+  
+  for(i in 2:(ncol(data)-1)){
+    
+    data[,i] = data[,i]*10^(data[,i+1])*(1000/vol)
+    
+  }
+  
+  data = data[,c(1,seq(2, ncol(data)-1, 2))]
+  
+  colnames(data) = gsub("_val", "", colnames(data))
+  
+  data = melt(data, id.vars = "Concentration")
+  colnames(data) = c("Concentration", "time", "cfu")
+  
+  data$Concentration = data$Concentration
+  data$time = as.numeric(as.character(data$time))
+  
+  data
+  
+}
 
-abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
-pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
-bac_params = read.csv(here::here("Parameters", "bac_params.csv"))
+palette = c("#00003f", rev(brewer.pal(n = 9, name = "RdBu"))[-5])
 
-parameters = c(mu_e = bac_params$mu_e[1],
-               mu_t = bac_params$mu_t[1],
-               mu_et = bac_params$mu_et[1],
-               Nmax = bac_params$Nmax[1],
-               beta = pha_params$beta,
-               L = pha_params$L,
-               tau = pha_params$tau,
-               alpha = pha_params$alpha,
-               gamma = 0,
-               ery_kill_max_BE = abx_params$kmax[1],
-               ery_kill_max_BT = abx_params$kmax[3],
-               ery_kill_max_BET = abx_params$kmax[5],
-               tet_kill_max_BE = abx_params$kmax[2],
-               tet_kill_max_BT = abx_params$kmax[4],
-               tet_kill_max_BET = abx_params$kmax[6],
-               EC_ery_BE = abx_params$EC50[1],
-               EC_ery_BT = abx_params$EC50[3],
-               EC_ery_BET = abx_params$EC50[5],
-               EC_tet_BE = abx_params$EC50[2],
-               EC_tet_BT = abx_params$EC50[4],
-               EC_tet_BET = abx_params$EC50[6],
-               pow_ery_BE = abx_params$pow[1],
-               pow_ery_BT = abx_params$pow[3],
-               pow_ery_BET = abx_params$pow[5],
-               pow_tet_BE = abx_params$pow[2],
-               pow_tet_BT = abx_params$pow[4],
-               pow_tet_BET = abx_params$pow[6],
-               gamma_ery = 0,
-               gamma_tet = 0)
+all_data = data.frame()
 
-times = seq(0, 48, 0.1)
+for(bac in c("201kt7", "327", "drp")){
+  for(abx in c("ery", "tet")){
+    
+    filename = grep(abx,list.files(here::here("Data", bac)), value=T)
+    
+    data = c()
+    
+    for(i in filename){
+      
+      data_i = read.xlsx(here::here("Data", bac, i))
+      data_i = clean_data(data_i)
+      data = rbind(data, data_i)
+      
+    }
+    
+    data = data %>%
+      group_by(Concentration, time) %>%
+      summarise(se = sd(cfu),
+                cfu = mean(cfu))
+    
+    data$abx = abx
+    data$bac = bac
+    
+    all_data = rbind(all_data, data)
+  }
+}
 
-yinit = c(Be = 1e9,
-          Bt = 1e9,
-          Bet = 0,
-          Pl = 0,
-          Pe = 0,
-          Pt = 0,
-          ery = 0,
-          tet = 0)
+bac_labs = c("NE201KT7", "NE327", "DRPET1")
+names(bac_labs) = c("201kt7", "327", "drp")
 
-event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 0, 0) ,
-                       value = c(1, 1, 1e9),
-                       method = c("add", "add", "add"))
-# value = c(5, 1.2, 1e9)
-results = phage_tr_model(parameters, yinit, times, event_dat)
-results$Pl[results$Pl == 0] = NA
+abx_labs = c("Erythromycin", "Tetracycline")
+names(abx_labs) = c("ery", "tet")
 
-p1 = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
+ggplot() +
+  geom_line(data = all_data, aes(time, cfu, colour = as.factor(Concentration)), size=1) +
+  geom_point(data = all_data, aes(time, cfu, colour = as.factor(Concentration)), size = 3) +
+  geom_errorbar(data = all_data, aes(time, cfu, colour = as.factor(Concentration),
+                                     ymin = pmax(0,cfu-se), ymax=cfu+se), width = 0.2, size = 1) +
+  facet_grid(abx~bac, labeller = labeller(bac = bac_labs, abx = abx_labs)) +
+  theme_bw() +
+  labs(x = "Time (hours)", y = "cfu per mL", colour = "Antibiotic\nconcentration\n(mg/L):", linetype = "Source:") +
+  scale_color_manual(values=palette)+
+  coord_cartesian(ylim=c(1e1,1e10))+
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 1e10)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
+  scale_x_continuous(breaks = seq(0,24,4)) +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12),
         legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
+        strip.text = element_text(size=12),
+        legend.title = element_text(size=12))
 
+ggsave(here::here("Figures","suppfig6.png"), dpi = 600)
 
-parameters["gamma"] = 0.1
-parameters["gamma_ery"] = 0
-parameters["gamma_tet"] = 0
-results = phage_tr_model(parameters, yinit, times, event_dat)
-results$Pl[results$Pl == 0] = NA
-
-p2 = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 1e10)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
-        legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
-
-
-parameters["gamma"] = 0
-parameters["gamma_ery"] = 0.1
-parameters["gamma_tet"] = 0
-results = phage_tr_model(parameters, yinit, times, event_dat)
-results$Pl[results$Pl == 0] = NA
-
-p3 = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 1e10)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
-        legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
-
-
-parameters["gamma"] = 0
-parameters["gamma_ery"] = 0
-parameters["gamma_tet"] = 0.1
-results = phage_tr_model(parameters, yinit, times, event_dat)
-results$Pl[results$Pl == 0] = NA
-
-p4 = ggplot(results) +
-  geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
-  geom_line(aes(time, Bt, colour = "Bt"), size = 0.8) +
-  geom_line(aes(time, Bet, colour = "Bet"), size = 0.8) +
-  geom_line(aes(time, Pl, colour = "Pl"), size = 0.8) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x),
-                     labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 1e10)) +
-  scale_x_continuous(breaks=seq(0,max(results$time),4))+
-  theme_bw() +
-  labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
-  scale_colour_manual(breaks = c("Be", "Bt", "Bet", "Pl"),
-                      values = c("#685cc4","#6db356","#c2484d","#c88a33"),
-                      labels = c(expression(B[E]),
-                                 expression(B[T]),
-                                 expression(B[ET]),
-                                 expression(P[L]))) +
-  theme(axis.text.x = element_text(size=12),
-        axis.title.x = element_text(size=12),
-        axis.text.y = element_text(size=12),
-        axis.title.y = element_text(size=12),
-        legend.text = element_text(size=12),
-        legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
-
-plot_grid(plot_grid(p1 + theme(legend.position = "none"),
-                    p2 + theme(legend.position = "none"),
-                    p3 + theme(legend.position = "none"),
-                    p4 + theme(legend.position = "none"),
-                    ncol = 2, labels = c("a)", "b)", "c)", "d)")),
-          plot_grid(NULL,get_legend(p1 + theme(legend.position = "bottom")), NULL,
-                    nrow = 1),
-          nrow = 2,
-          rel_heights = c(1,0.1))
-
-ggsave(here::here("Figures", "suppfig6.png"))

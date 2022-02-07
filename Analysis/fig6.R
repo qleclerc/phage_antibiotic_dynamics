@@ -337,7 +337,7 @@ pd = ggplot(all_results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12)) +
-  labs(colour = "", x = "Parameter", y = "Correlation coefficient") +
+  labs(colour = "", x = "\n", y = "Correlation coefficient") +
   scale_color_discrete(labels = c("Remaining bacteria", "Maximum DRP")) +
   scale_x_discrete(labels = c(expression(beta),
                               expression(delta[max]),
@@ -348,20 +348,28 @@ pd = ggplot(all_results) +
                               expression(gamma[T]),
                               expression(mu[maxE]),
                               expression(mu[maxT]), 
-                              expression(mu[maxET])))
+                              expression(mu[maxET]))) +
+  coord_cartesian(clip = "off", ylim = c(-1,1)) +
+  annotate("text", x = 2.5, y = -1.37, label = "Phage parameters") +
+  annotate("text", x = 6, y = -1.37, label = "Decay parameters") +
+  annotate("text", x = 9, y = -1.37, label = "Bacteria parameters") +
+  annotate("segment", x = 1, xend = 4, y = -1.30, yend = -1.30) +
+  annotate("segment", x = 5, xend = 7, y = -1.30, yend = -1.30) +
+  annotate("segment", x = 8, xend = 10, y = -1.30, yend = -1.30)
+
 
 ## final plot ############
 
 plot_grid(plot_grid(plot_grid(pa + theme(legend.position = "none"),
-                    pb + theme(legend.position = "none"),
-                    pc + theme(legend.position = "none"),
-                    ncol = 3,
-                    labels = c("a)", "b)", "c)")),
-          get_legend(pa + guides(linetype = F) + theme(legend.position = "bottom")),
-          get_legend(pa + guides(colour = F) + theme(legend.position = "bottom",
-                                                     legend.key.width = unit(2, "cm"))),
-          nrow = 3,
-          rel_heights = c(1,0.1,0.1)),
+                              pb + theme(legend.position = "none"),
+                              pc + theme(legend.position = "none"),
+                              ncol = 3,
+                              labels = c("a)", "b)", "c)")),
+                    get_legend(pa + guides(linetype = F) + theme(legend.position = "bottom")),
+                    get_legend(pa + guides(colour = F) + theme(legend.position = "bottom",
+                                                               legend.key.width = unit(2, "cm"))),
+                    nrow = 3,
+                    rel_heights = c(1,0.1,0.1)),
           pd, rel_heights = c(1,0.7), nrow = 2, labels = c("", "d)"))
 
 ggsave(here::here("Figures", "fig6.png"), height = 10, width = 10)
