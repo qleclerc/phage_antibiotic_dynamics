@@ -1,2 +1,3 @@
-# phagetherapy_transduction
-Repository for chapter 3 code &amp; analysis on the potential impact of transduction on the efficacy of phage therapy
+# Modelling the synergistic effect of bacteriophage and antibiotics on bacteria: killers and drivers of resistance evolution
+
+Code and data
