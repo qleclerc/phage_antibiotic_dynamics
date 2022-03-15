@@ -1,8 +1,8 @@
-# Modelling the synergistic effect of bacteriophage and antibiotics on bacteria: killers and drivers of resistance evolution: Code Repository
+# Modelling the synergistic effect of bacteriophage and antibiotics on bacteria: killers and drivers of resistance evolution - Code Repository
 
 ## About
 This repository contains all the code used to run the analyses outlined in the corresponding paper.
-Please note that this work is not yet peer-reviewed, and is available [here](https://www.biorxiv.org/content/10.1101/2021.07.24.453184v2).
+Please note that this work is not yet peer-reviewed, and is available [here](https://www.biorxiv.org/content/10.1101/2022.03.02.480504v1).
 
 For any questions, please contact Quentin Leclerc.
 
