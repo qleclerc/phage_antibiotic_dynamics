@@ -9,7 +9,9 @@ library(dplyr)
 
 source(here::here("Model", "model.R"))
 
-palette = rev(brewer.pal(n = 9, name = "RdBu"))[c(1,3,7,9)]
+#palette = rev(brewer.pal(n = 9, name = "RdBu"))[c(1,3,7,9)]
+palette_blues = rev(brewer.pal(n = 9, name = "Blues"))[c(1,3,5,6)]
+palette_greens = rev(brewer.pal(n = 9, name = "Greens"))[c(1,3,5,6)]
 
 abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
 pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
@@ -108,7 +110,7 @@ p_duration = ggplot(all_results) +
        shape = "Condition:") +
   scale_x_continuous(breaks = seq(-24,24,4)) +
   scale_y_continuous(limits = c(0, 47)) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
+  scale_color_manual(values = palette_blues,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
                      breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
                      labels = c(bquote(10^7),
                                 bquote(10^8),
@@ -139,7 +141,7 @@ p_max = ggplot(all_results) +
                      labels = c("x", "0", expression(10^0),
                                 expression(10^2), expression(10^4), expression(10^6),
                                 expression(10^8), "x")) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
+  scale_color_manual(values = palette_blues,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
                      breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
                      labels = c(bquote(10^7),
                                 bquote(10^8),
@@ -171,7 +173,7 @@ p_remain = ggplot(all_results) +
                      labels = c("x", "0", expression(10^0),
                                 expression(10^2), expression(10^4), expression(10^6),
                                 expression(10^8), "x")) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
+  scale_color_manual(values = palette_blues,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
                      breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
                      labels = c(bquote(10^7),
                                 bquote(10^8),
@@ -242,7 +244,7 @@ p_duration = ggplot(all_results_abx) +
        colour = "Antibiotics added\n(mg/L):") +
   scale_x_continuous(breaks = seq(-24,24,4)) +
   scale_y_continuous(limits = c(0, 47)) +
-  scale_color_manual(values = palette) +
+  scale_color_manual(values = palette_greens) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
         legend.text = element_text(size=12),
@@ -262,7 +264,7 @@ p_max = ggplot(all_results_abx) +
                      labels = c("x", "0", expression(10^0),
                                 expression(10^2), expression(10^4), expression(10^6),
                                 expression(10^8), "x")) +
-  scale_color_manual(values = palette) +
+  scale_color_manual(values = palette_greens) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
@@ -283,7 +285,7 @@ p_remain = ggplot(all_results_abx) +
                      labels = c("x", "0", expression(10^0),
                                 expression(10^2), expression(10^4), expression(10^6),
                                 expression(10^8), "x")) +
-  scale_color_manual(values = palette) +
+  scale_color_manual(values = palette_greens) +
   coord_cartesian(ylim = c(0.01, 1e9)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),

@@ -8,6 +8,7 @@ library(RColorBrewer)
 library(epiR)
 
 source(here::here("Model", "model.R"))
+set.seed(42)
 
 palette = c(brewer.pal(n = 9, name = "BuGn")[c(3,4,6,8)], "#000000")
 
@@ -284,7 +285,7 @@ yinit = c(Be = 1e9,
 
 for(i in 1:nrow(all_results)){
   
-  if(i %% round(nrow(all_results)/10) == 0) cat(i/round(nrow(all_results)/10), "% done\n")
+  if(i %% round(nrow(all_results)/10) == 0) cat(i/round(nrow(all_results))*100, "% done\n")
   
   parameters = as.vector(all_results[i,c(1:29)])
   
@@ -338,17 +339,17 @@ pd = ggplot(all_results) +
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12)) +
   labs(colour = "", x = "\n", y = "Correlation coefficient") +
-  scale_color_discrete(labels = c("Remaining bacteria", "Maximum DRP")) +
-  scale_x_discrete(labels = c(expression(beta),
-                              expression(delta[max]),
-                              expression(tau),
-                              expression(alpha),
-                              expression(gamma),
-                              expression(gamma[E]),
-                              expression(gamma[T]),
-                              expression(mu[maxE]),
-                              expression(mu[maxT]), 
-                              expression(mu[maxET]))) +
+  scale_color_discrete(labels = c("Remaining bacteria", bquote("Maximum B"[ET]))) +
+  scale_x_discrete(labels = c(bquote(beta),
+                              bquote(delta*"max"),
+                              bquote(tau),
+                              bquote(alpha),
+                              bquote(gamma[P]),
+                              bquote(gamma[E]),
+                              bquote(gamma[T]),
+                              bquote(mu*"max"[E]),
+                              bquote(mu*"max"[T]), 
+                              bquote(mu*"max"[ET]))) +
   coord_cartesian(clip = "off", ylim = c(-1,1)) +
   annotate("text", x = 2.5, y = -1.37, label = "Phage parameters") +
   annotate("text", x = 6, y = -1.37, label = "Decay parameters") +

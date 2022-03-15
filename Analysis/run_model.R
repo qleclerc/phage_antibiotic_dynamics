@@ -36,7 +36,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                pow_tet_BE = abx_params$pow[2],
                pow_tet_BT = abx_params$pow[4],
                pow_tet_BET = abx_params$pow[6],
-               gamma_ery = 0.1,
+               gamma_ery = 0,
                gamma_tet = 0)
 
 times = seq(0, 48, 0.1)
@@ -50,13 +50,16 @@ yinit = c(Be = 1e9,
           ery = 0,
           tet = 0)
 
-
+abx_time = 5
+pha_time = 0
+extra_label = "" #"morep"
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
-                       time = c(0, 0, 0),
-                       value = c(1, 1, 1e9),
+                       time = c(abx_time, abx_time, pha_time),
+                       value = c(1, 1, 1e8),
                        method = c("add", "add", "add"))
 
 results = phage_tr_model(parameters, yinit, times, event_dat, T)
+results$Pl[results$Pl == 0] = NA
 
 ggplot(results) +
   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
@@ -82,8 +85,21 @@ ggplot(results) +
         axis.title.y = element_text(size=12),
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
-        strip.text.x = element_text(size=12))
-
+        strip.text.x = element_text(size=12)) +
+  geom_vline(xintercept = abx_time, linetype = "dashed") +
+  annotate("segment", x = abx_time+5, xend = abx_time, y = 10^10.5, yend = 10^10.5) +
+  geom_label(x = abx_time+6, y = 10.5, label = "Antibiotics +", size = 3) +
+  geom_vline(xintercept = pha_time, linetype = "dashed") +
+  annotate("segment", x = pha_time+4.5, xend = pha_time, y = 10^11.5, yend = 10^11.5) +
+  geom_label(x = pha_time+5.5, y = 11.5, label = "Phage +", size = 3) +
+  geom_hline(yintercept = max(results$Bet, na.rm = T), linetype = "dotted") +
+  annotate("segment", y = 10^(log10(max(results$Bet, na.rm = T))+1),
+           yend = max(results$Bet), x = 40, xend = 40) +
+  geom_label(y = log10(max(results$Bet, na.rm = T))+1,
+             x = 40, label = "Max DRP", size = 3) +
+  geom_hline(yintercept = 1, linetype = "solid", color = "grey", size = 0.8)
+  
+ggsave(here::here("test_plots", paste0("a", abx_time, "p", pha_time, extra_label,".png")))
 
 # ggplot(results) +
 #   geom_line(aes(time, Be, colour = "Be"), size = 0.8) +
