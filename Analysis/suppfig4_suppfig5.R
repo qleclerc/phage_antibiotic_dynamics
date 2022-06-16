@@ -2,6 +2,7 @@
 
 library(deSolve)
 library(ggplot2)
+library(ggtext)
 library(scales)
 library(cowplot)
 library(RColorBrewer)
@@ -9,7 +10,12 @@ library(dplyr)
 
 source(here::here("Model", "model.R"))
 
-palette = rev(brewer.pal(n = 9, name = "RdBu"))[c(1,3,7,9)]
+#things to test
+test_pha_con = 1e8
+test_diffs = c(0,3,5,15)
+
+palette_blues = brewer.pal(n = 7, name = "Blues")
+palette_greens = brewer.pal(n = 7, name = "Greens")
 
 abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
 pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
@@ -56,9 +62,14 @@ yinit = c(Be = 1e9,
           ery = 0,
           tet = 0)
 
-all_results = data.frame()
+all_results_pha = data.frame()
 
-for(pha_con in c(10^7, 10^8, 10^9, 10^10)){
+for(pha_con in c(10^5, 5*10^5,
+                 10^6, 5*10^6,
+                 10^7, 5*10^7,
+                 10^8, 5*10^8,
+                 10^9, 5*10^9,
+                 10^10)){
   
   results_con = data.frame(abx_start = c(rep(0,25), 1:24),
                            phage_start = c(0:24, rep(0,24)),
@@ -77,128 +88,125 @@ for(pha_con in c(10^7, 10^8, 10^9, 10^10)){
     
     results = phage_tr_model(parameters, yinit, times, event_dat)
     
-    results_con$max_bet[i] = max(max(results$Bet, na.rm = T), 0.01)
+    results_con$max_bet[i] = max(results$Bet, na.rm = T)
     
     results_con$duration_bet[i] = sum(results$Bet>1)/10
     
-    results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1), 0.01)
+    results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1),0)
     
   }
   
   results_con$diff = results_con$abx_start - results_con$phage_start
   results_con$pha_con = pha_con
   
-  all_results = rbind(all_results, results_con)
+  all_results_pha = rbind(all_results_pha, results_con)
   
 }
 
-#things to test
-test_pha_con = 1e8
-test_diffs = c(0,3,5,15)
+all_results_pha_cat = all_results_pha %>%
+  mutate(duration_bet_cat = cut(duration_bet, breaks = c(0, 0.99, 10, 20, 30, 40, 50),
+                                labels = c("0", "1 - 10", "10 - 20", "20 - 30", "30 - 40", "40 - 50"),
+                                include.lowest = T)) %>%
+  mutate(max_bet_cat = cut(max_bet, breaks = c(0, 10^0, 10^1, 10^2, 10^4, 10^6, 10^8, 10^10),
+                           labels = c("0", "1 - 10", "10 - 10^2", "10^2 - 10^4", "10^4 - 10^6",
+                                      "10^6 - 10^8", "10^8 - 10^10"),
+                           include.lowest = T)) %>%
+  mutate(end_bacteria_cat = cut(end_bacteria, breaks = c(0, 10^0, 10^1, 10^2, 10^4, 10^6, 10^8, 10^10),
+                                labels = c("0", "1 - 10","10 - 10^2", "10^2 - 10^4", "10^4 - 10^6",
+                                           "10^6 - 10^8", "10^8 - 10^10"),
+                                include.lowest = T))
 
-p_duration = ggplot(all_results) +
-  geom_line(aes(diff, duration_bet, colour = as.factor(pha_con)), size = 0.8) +
-  geom_point(data = all_results %>% filter(pha_con == test_pha_con) %>% filter(diff %in% test_diffs),
-             aes(diff, duration_bet, shape = as.factor(diff)), size = 3, fill = "black") +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+all_results_pha_cat = all_results_pha_cat %>%
+  mutate(expanded = (pha_con == test_pha_con & diff %in% test_diffs)) %>%
+  mutate(pha_con = gsub("1e+", "10^", pha_con, fixed = T)) %>%
+  mutate(pha_con = gsub("5e+", "5*10^", pha_con, fixed = T)) %>%
+  mutate(pha_con = gsub("^0", "^", pha_con, fixed = T)) %>%
+  mutate(pha_con = factor(pha_con, levels = unique(pha_con)))
+
+
+
+p_duration = ggplot(all_results_pha_cat[order(all_results_pha_cat$expanded),],
+                    aes(x = diff, y = pha_con,
+                        fill = as.factor(duration_bet_cat))) +
+  geom_tile(aes(color = expanded), size = 1) +
   theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Double-resistant bacteria presence time",
-       colour = "Phage added\n(pfu/mL):",
-       shape = "Condition:") +
-  scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(limits = c(0, 47)) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
-                     labels = c(bquote(10^7),
-                                bquote(10^8),
-                                bquote(10^9),
-                                bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,8,24),
-                     breaks = as.factor(test_diffs),
-                     labels = c("1.", "2.", "3.", "4.")) +
-  theme(axis.text = element_text(size=12),
+  theme(axis.text.y = element_markdown(size=12),
+        axis.text.x = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_blues) +
+  scale_x_continuous(breaks = seq(-24,24,4)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Phage (pfu/mL)",
+       fill = "Double-resistant bacteria\npresence time (h)") +
+  scale_color_manual(guide = "none", values = c(`TRUE` = "black", `FALSE` = "NA")) +
+  scale_y_discrete(labels = c("10^5", "",
+                              "10^6", "",
+                              "10^7", "",
+                              "10^8", "",
+                              "10^9", "",
+                              "10^10"))
 
-p_max = ggplot(all_results) +
-  geom_line(aes(diff, max_bet, colour = as.factor(pha_con)), size = 0.8) +
-  geom_point(data = all_results %>% filter(pha_con == test_pha_con) %>% filter(diff %in% test_diffs),
-             aes(diff, max_bet, shape = as.factor(diff)), size = 3, fill = "black") +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+p_max = ggplot(all_results_pha_cat[order(all_results_pha_cat$expanded),],
+               aes(x = diff, y = pha_con,
+                   fill = as.factor(max_bet_cat))) +
+  geom_tile(aes(color = expanded), size = 1) +
   theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Maximum double-resistant bacteria",
-       colour = "Phage added\n(pfu/mL):",
-       shape = "Condition:") +
-  scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x, n = 6),
-                     labels = c("x", "0", expression(10^0),
-                                expression(10^2), expression(10^4), expression(10^6),
-                                expression(10^8), "x")) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
-                     labels = c(bquote(10^7),
-                                bquote(10^8),
-                                bquote(10^9),
-                                bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,8,24),
-                     breaks = as.factor(test_diffs),
-                     labels = c("1.", "2.", "3.", "4.")) +
-  coord_cartesian(ylim = c(0.01, 1e9)) +
-  theme(axis.text = element_text(size=12),
+  theme(axis.text.y = element_markdown(size=12),
+        axis.text.x = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_blues) +
+  scale_x_continuous(breaks = seq(-24,24,4)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Phage (pfu/mL)",
+       fill = "Maximum double-resistant\nbacteria (cfu/mL)") +
+  scale_color_manual(guide = "none", values = c(`TRUE` = "black", `FALSE` = "NA")) +
+  scale_y_discrete(labels = c("10^5", "",
+                              "10^6", "",
+                              "10^7", "",
+                              "10^8", "",
+                              "10^9", "",
+                              "10^10"))
 
-p_remain = ggplot(all_results) +
-  geom_line(aes(diff, end_bacteria, colour = as.factor(pha_con)), size = 0.8) +
-  geom_point(data = all_results %>% filter(pha_con == test_pha_con) %>% filter(diff %in% test_diffs),
-             aes(diff, end_bacteria, shape = as.factor(diff)), size = 3, fill = "black") +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+p_remain = ggplot(all_results_pha_cat[order(all_results_pha_cat$expanded),],
+                  aes(x = diff, y = pha_con,
+                      fill = as.factor(end_bacteria_cat))) +
+  geom_tile(aes(color = expanded), size = 1) +
   theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Total remaining bacteria after 48h",
-       colour = "Phage added\n(pfu/mL):",
-       shape = "Condition:") +
-  scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x, n = 6),
-                     labels = c("x", "0", expression(10^0),
-                                expression(10^2), expression(10^4), expression(10^6),
-                                expression(10^8), "x")) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
-                     labels = c(bquote(10^7),
-                                bquote(10^8),
-                                bquote(10^9),
-                                bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,8,24),
-                     breaks = as.factor(test_diffs),
-                     labels = c("1.", "2.", "3.", "4.")) +
-  coord_cartesian(ylim = c(0.01, 1e9)) +
-  theme(axis.text = element_text(size=12),
+  theme(axis.text.y = element_markdown(size=12),
+        axis.text.x = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_blues) +
+  scale_x_continuous(breaks = seq(-24,24,4)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Phage (pfu/mL)",
+       fill = "Total bacteria\nremaining (cfu/mL)") +
+  scale_color_manual(guide = "none", values = c(`TRUE` = "black", `FALSE` = "NA")) +
+  scale_y_discrete(labels = c("10^5", "",
+                              "10^6", "",
+                              "10^7", "",
+                              "10^8", "",
+                              "10^9", "",
+                              "10^10"))
 
 
-pb = plot_grid(p_remain + theme(legend.position = "none"),
-               p_max + theme(legend.position = "none"),
-               p_duration + theme(legend.position = "none"),
-               get_legend(p_remain + guides(shape = F) + theme(legend.position = "bottom")),
-               ncol = 1,
-               rel_heights = c(1,1,1,0.15,0.15))
+pb = plot_grid(p_remain,
+               p_max,
+               p_duration,
+               ncol = 1, align = "v")
 
 
 all_results_abx = data.frame()
 
-for(abx_con in c(0.25, 0.5, 1, 2)){
+for(abx_con in seq(0.2, 2, 0.2)){
   
   results_con = data.frame(abx_start = c(rep(0,25), 1:24),
                            phage_start = c(0:24, rep(0,24)),
@@ -210,18 +218,18 @@ for(abx_con in c(0.25, 0.5, 1, 2)){
     
     event_dat = data.frame(var = c("ery", "tet", "Pl"),
                            time = c(results_con$abx_start[i], results_con$abx_start[i], results_con$phage_start[i]),
-                           value = c(abx_con, abx_con, 1e9),
+                           value = c(abx_con, abx_con, 1e8),
                            method = c("add", "add", "add"))
     
     #times = seq(0, max(24+results_con$abx_start[i], 24+results_con$phage_start[i]), 1)
     
     results = phage_tr_model(parameters, yinit, times, event_dat)
     
-    results_con$max_bet[i] = max(max(results$Bet, na.rm = T), 0.01)
+    results_con$max_bet[i] = max(results$Bet, na.rm = T)
     
     results_con$duration_bet[i] = sum(results$Bet>1)/10
     
-    results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1), 0.01)
+    results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1),0)
     
   }
   
@@ -233,74 +241,77 @@ for(abx_con in c(0.25, 0.5, 1, 2)){
 }
 
 
-p_duration = ggplot(all_results_abx) +
-  geom_line(aes(diff, duration_bet, colour = as.factor(abx_con)), size = 0.8) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+all_results_abx_cat = all_results_abx %>%
+  mutate(duration_bet_cat = cut(duration_bet, breaks = c(0, 0.99, 10, 20, 30, 40, 50),
+                                labels = c("0", "1 - 10", "10 - 20", "20 - 30", "30 - 40", "40 - 50"),
+                                include.lowest = T)) %>%
+  mutate(max_bet_cat = cut(max_bet, breaks = c(0, 10^0, 10^1, 10^2, 10^4, 10^6, 10^8, 10^10),
+                           labels = c("0", "1 - 10", "10 - 10^2", "10^2 - 10^4", "10^4 - 10^6",
+                                      "10^6 - 10^8", "10^8 - 10^10"),
+                           include.lowest = T)) %>%
+  mutate(end_bacteria_cat = cut(end_bacteria, breaks = c(0, 10^0, 10^1, 10^2, 10^4, 10^6, 10^8, 10^10),
+                                labels = c("0", "1 - 10", "10 - 10^2", "10^2 - 10^4", "10^4 - 10^6",
+                                           "10^6 - 10^8", "10^8 - 10^10"),
+                                include.lowest = T))
+
+
+p_duration = ggplot(all_results_abx_cat) +
+  geom_tile(aes(x = diff, y = as.factor(abx_con), fill = as.factor(duration_bet_cat))) +
   theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Double-resistant bacteria presence time",
-       colour = "Antibiotics added\n(mg/L):") +
-  scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(limits = c(0, 47)) +
-  scale_color_manual(values = palette) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
-
-p_max = ggplot(all_results_abx) +
-  geom_line(aes(diff, max_bet, colour = as.factor(abx_con)), size = 0.8) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Maximum double-resistant bacteria",
-       colour = "Antibiotics added\n(mg/L):") +
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_greens) +
   scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x, n = 6),
-                     labels = c("x", "0", expression(10^0),
-                                expression(10^2), expression(10^4), expression(10^6),
-                                expression(10^8), "x")) +
-  scale_color_manual(values = palette) +
-  coord_cartesian(ylim = c(0.01, 1e9)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Antibiotics (mg/L)",
+       fill = "Double-resistant bacteria\npresence time (h)")
+
+p_max = ggplot(all_results_abx_cat) +
+  geom_tile(aes(x = diff, y = as.factor(abx_con), fill = as.factor(max_bet_cat))) +
+  theme_bw() +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
-
-p_remain = ggplot(all_results_abx) +
-  geom_line(aes(diff, end_bacteria, colour = as.factor(abx_con)), size = 0.8) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Total remaining bacteria after 48h",
-       colour = "Antibiotics added\n(mg/L):") +
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_greens) +
   scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x, n = 6),
-                     labels = c("x", "0", expression(10^0),
-                                expression(10^2), expression(10^4), expression(10^6),
-                                expression(10^8), "x")) +
-  scale_color_manual(values = palette) +
-  coord_cartesian(ylim = c(0.01, 1e9)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Antibiotics (mg/L)",
+       fill = "Maximum double-resistant\nbacteria (cfu/mL)")
+
+p_remain = ggplot(all_results_abx_cat) +
+  geom_tile(aes(x = diff, y = as.factor(abx_con), fill = as.factor(end_bacteria_cat))) +
+  theme_bw() +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_greens) +
+  scale_x_continuous(breaks = seq(-24,24,4)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Antibiotics (mg/L)",
+       fill = "Total bacteria\nremaining (cfu/mL)")
 
 
-pa = plot_grid(p_remain + theme(legend.position = "none"),
-               p_max + theme(legend.position = "none"),
-               p_duration + theme(legend.position = "none"),
-               get_legend(p_remain + theme(legend.position = "bottom")),
-               ncol = 1,
-               rel_heights = c(1,1,1,0.15,0.15))
+pa = plot_grid(p_remain,
+               p_max,
+               p_duration,
+               ncol = 1, align = "v")
+
+ptop = plot_grid(pa, pb,
+                 nrow = 1,
+                 labels = c("a)", "b)"),
+                 hjust = 0, vjust = 1)
 
 
 
+
+#expanded view
 abx_time = test_diffs[1]
 pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
@@ -350,12 +361,12 @@ p_abx1_pha1 = ggplot(results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
-        plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 21, fill = "black", size = 5)
+        plot.title = element_text(face = "bold"))
+#geom_point(aes(x=47, y=10^11.5), pch = 21, fill = "black", size = 5)
 
 
 abx_time = test_diffs[2]
-pha_time = 0
+pha_time = 0 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -403,13 +414,13 @@ p_abx6_pha1 = ggplot(results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
-        plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 22, fill = "black", size = 5)
+        plot.title = element_text(face = "bold"))
+#geom_point(aes(x=47, y=10^11.5), pch = 22, fill = "black", size = 5)
 
 
 
 abx_time = test_diffs[3]
-pha_time = 0
+pha_time = 0 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -457,13 +468,13 @@ p_abx8_pha1 = ggplot(results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
-        plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 8, fill = "black", size = 5)
+        plot.title = element_text(face = "bold"))
+#geom_point(aes(x=47, y=10^11.5), pch = 8, fill = "black", size = 5)
 
 
 
 abx_time = test_diffs[4]
-pha_time = 0
+pha_time = 0 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -511,13 +522,11 @@ p_abx16_pha1 = ggplot(results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
-        plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 24, fill = "black", size = 5)
+        plot.title = element_text(face = "bold"))
+#geom_point(aes(x=47, y=10^11.5), pch = 24, fill = "black", size = 5)
 
 
-final_plot = plot_grid(pa,
-                       NULL,
-                       pb,
+final_plot = plot_grid(ptop,
                        NULL,
                        plot_grid(
                          plot_grid(p_abx1_pha1 + theme(legend.position = "none"),
@@ -525,18 +534,21 @@ final_plot = plot_grid(pa,
                                    p_abx8_pha1 + theme(legend.position = "none"),
                                    p_abx16_pha1 + theme(legend.position = "none"),
                                    ncol = 2),
-                         get_legend(p_abx1_pha1 + theme(legend.position = "bottom")),
-                         ncol = 1,
-                         rel_heights = c(1,0.05)),
-                       ncol = 5,
-                       rel_widths = c(0.6,0.05,0.6,0.05,1.1),
-                       labels = c("a)", "", "b)", "", "c)"))
+                         get_legend(p_abx1_pha1 + theme(legend.position = "right")),
+                         nrow = 1,
+                         rel_widths = c(1,0.1)),
+                       ncol = 1,
+                       rel_heights = c(1.3, 0.05, 1),
+                       labels = c("", "" ,"c)"), hjust = 0)
 
-ggsave(here::here("Figures", "suppfig4.png"), final_plot, height = 12, width = 17)
+ggsave(here::here("Figures", "suppfig4.png"), final_plot, height = 15, width = 13)
 
 
+## SUPPFIG 5 #################################################
 
-## same, but with BT in minority ######################################
+abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
+pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
+bac_params = read.csv(here::here("Parameters", "bac_params.csv"))
 
 parameters = c(mu_e = bac_params$mu_e[1],
                mu_t = bac_params$mu_t[1],
@@ -579,9 +591,14 @@ yinit = c(Be = 1e6,
           ery = 0,
           tet = 0)
 
-all_results = data.frame()
+all_results_pha = data.frame()
 
-for(pha_con in c(10^7, 10^8, 10^9, 10^10)){
+for(pha_con in c(10^5, 5*10^5,
+                 10^6, 5*10^6,
+                 10^7, 5*10^7,
+                 10^8, 5*10^8,
+                 10^9, 5*10^9,
+                 10^10)){
   
   results_con = data.frame(abx_start = c(rep(0,25), 1:24),
                            phage_start = c(0:24, rep(0,24)),
@@ -600,125 +617,125 @@ for(pha_con in c(10^7, 10^8, 10^9, 10^10)){
     
     results = phage_tr_model(parameters, yinit, times, event_dat)
     
-    results_con$max_bet[i] = max(max(results$Bet, na.rm = T), 0.01)
+    results_con$max_bet[i] = max(results$Bet, na.rm = T)
     
     results_con$duration_bet[i] = sum(results$Bet>1)/10
     
-    results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1), 0.01)
+    results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1),0)
     
   }
   
   results_con$diff = results_con$abx_start - results_con$phage_start
   results_con$pha_con = pha_con
   
-  all_results = rbind(all_results, results_con)
+  all_results_pha = rbind(all_results_pha, results_con)
   
 }
 
+all_results_pha_cat = all_results_pha %>%
+  mutate(duration_bet_cat = cut(duration_bet, breaks = c(0, 0.99, 10, 20, 30, 40, 50),
+                                labels = c("0", "1 - 10", "10 - 20", "20 - 30", "30 - 40", "40 - 50"),
+                                include.lowest = T)) %>%
+  mutate(max_bet_cat = cut(max_bet, breaks = c(0, 10^0, 10^1, 10^2, 10^4, 10^6, 10^8, 10^10),
+                           labels = c("0", "1 - 10", "10 - 10^2", "10^2 - 10^4", "10^4 - 10^6",
+                                      "10^6 - 10^8", "10^8 - 10^10"),
+                           include.lowest = T)) %>%
+  mutate(end_bacteria_cat = cut(end_bacteria, breaks = c(0, 10^0, 10^1, 10^2, 10^4, 10^6, 10^8, 10^10),
+                                labels = c("0", "1 - 10","10 - 10^2", "10^2 - 10^4", "10^4 - 10^6",
+                                           "10^6 - 10^8", "10^8 - 10^10"),
+                                include.lowest = T))
 
-p_duration = ggplot(all_results) +
-  geom_line(aes(diff, duration_bet, colour = as.factor(pha_con)), size = 0.8) +
-  geom_point(data = all_results %>% filter(pha_con == test_pha_con) %>% filter(diff %in% test_diffs),
-             aes(diff, duration_bet, shape = as.factor(diff)), size = 3, fill = "black") +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+all_results_pha_cat = all_results_pha_cat %>%
+  mutate(expanded = (pha_con == test_pha_con & diff %in% test_diffs)) %>%
+  mutate(pha_con = gsub("1e+", "10^", pha_con, fixed = T)) %>%
+  mutate(pha_con = gsub("5e+", "5*10^", pha_con, fixed = T)) %>%
+  mutate(pha_con = gsub("^0", "^", pha_con, fixed = T)) %>%
+  mutate(pha_con = factor(pha_con, levels = unique(pha_con)))
+
+
+
+p_duration = ggplot(all_results_pha_cat[order(all_results_pha_cat$expanded),],
+                    aes(x = diff, y = pha_con,
+                        fill = as.factor(duration_bet_cat))) +
+  geom_tile(aes(color = expanded), size = 1) +
   theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Double-resistant bacteria presence time",
-       colour = "Phage added\n(pfu/mL):",
-       shape = "Condition:") +
-  scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(limits = c(0, 47)) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
-                     labels = c(bquote(10^7),
-                                bquote(10^8),
-                                bquote(10^9),
-                                bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,8,24),
-                     breaks = as.factor(test_diffs),
-                     labels = c("1.", "2.", "3.", "4.")) +
-  theme(axis.text = element_text(size=12),
+  theme(axis.text.y = element_markdown(size=12),
+        axis.text.x = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_blues) +
+  scale_x_continuous(breaks = seq(-24,24,4)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Phage (pfu/mL)",
+       fill = "Double-resistant bacteria\npresence time (h)") +
+  scale_color_manual(guide = "none", values = c(`TRUE` = "black", `FALSE` = "NA")) +
+  scale_y_discrete(labels = c("10^5", "",
+                              "10^6", "",
+                              "10^7", "",
+                              "10^8", "",
+                              "10^9", "",
+                              "10^10"))
 
-p_max = ggplot(all_results) +
-  geom_line(aes(diff, max_bet, colour = as.factor(pha_con)), size = 0.8) +
-  geom_point(data = all_results %>% filter(pha_con == test_pha_con) %>% filter(diff %in% test_diffs),
-             aes(diff, max_bet, shape = as.factor(diff)), size = 3, fill = "black") +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+p_max = ggplot(all_results_pha_cat[order(all_results_pha_cat$expanded),],
+               aes(x = diff, y = pha_con,
+                   fill = as.factor(max_bet_cat))) +
+  geom_tile(aes(color = expanded), size = 1) +
   theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Maximum double-resistant bacteria",
-       colour = "Phage added\n(pfu/mL):",
-       shape = "Condition:") +
-  scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x, n = 6),
-                     labels = c("x", "0", expression(10^0),
-                                expression(10^2), expression(10^4), expression(10^6),
-                                expression(10^8), "x")) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
-                     labels = c(bquote(10^7),
-                                bquote(10^8),
-                                bquote(10^9),
-                                bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,8,24),
-                     breaks = as.factor(test_diffs),
-                     labels = c("1.", "2.", "3.", "4.")) +
-  coord_cartesian(ylim = c(0.01, 1e9)) +
-  theme(axis.text = element_text(size=12),
+  theme(axis.text.y = element_markdown(size=12),
+        axis.text.x = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_blues) +
+  scale_x_continuous(breaks = seq(-24,24,4)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Phage (pfu/mL)",
+       fill = "Maximum double-resistant\nbacteria (cfu/mL)") +
+  scale_color_manual(guide = "none", values = c(`TRUE` = "black", `FALSE` = "NA")) +
+  scale_y_discrete(labels = c("10^5", "",
+                              "10^6", "",
+                              "10^7", "",
+                              "10^8", "",
+                              "10^9", "",
+                              "10^10"))
 
-p_remain = ggplot(all_results) +
-  geom_line(aes(diff, end_bacteria, colour = as.factor(pha_con)), size = 0.8) +
-  geom_point(data = all_results %>% filter(pha_con == test_pha_con) %>% filter(diff %in% test_diffs),
-             aes(diff, end_bacteria, shape = as.factor(diff)), size = 3, fill = "black") +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+p_remain = ggplot(all_results_pha_cat[order(all_results_pha_cat$expanded),],
+                  aes(x = diff, y = pha_con,
+                      fill = as.factor(end_bacteria_cat))) +
+  geom_tile(aes(color = expanded), size = 1) +
   theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Total remaining bacteria after 48h",
-       colour = "Phage added\n(pfu/mL):",
-       shape = "Condition:") +
-  scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x, n = 6),
-                     labels = c("x", "0", expression(10^0),
-                                expression(10^2), expression(10^4), expression(10^6),
-                                expression(10^8), "x")) +
-  scale_color_manual(values = palette,#c("grey", "grey", "grey", "grey", "grey", "grey"), 
-                     breaks = c("1e+07", "1e+08", "1e+09", "1e+10"),
-                     labels = c(bquote(10^7),
-                                bquote(10^8),
-                                bquote(10^9),
-                                bquote(10^10))) +
-  scale_shape_manual(values = c(21,22,8,24),
-                     breaks = as.factor(test_diffs),
-                     labels = c("1.", "2.", "3.", "4.")) +
-  coord_cartesian(ylim = c(0.01, 1e9)) +
-  theme(axis.text = element_text(size=12),
+  theme(axis.text.y = element_markdown(size=12),
+        axis.text.x = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_blues) +
+  scale_x_continuous(breaks = seq(-24,24,4)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Phage (pfu/mL)",
+       fill = "Total bacteria\nremaining (cfu/mL)") +
+  scale_color_manual(guide = "none", values = c(`TRUE` = "black", `FALSE` = "NA")) +
+  scale_y_discrete(labels = c("10^5", "",
+                              "10^6", "",
+                              "10^7", "",
+                              "10^8", "",
+                              "10^9", "",
+                              "10^10"))
 
 
-pb = plot_grid(p_remain + theme(legend.position = "none"),
-               p_max + theme(legend.position = "none"),
-               p_duration + theme(legend.position = "none"),
-               get_legend(p_remain + guides(shape = F) + theme(legend.position = "bottom")),
-               ncol = 1,
-               rel_heights = c(1,1,1,0.15,0.15))
+pb = plot_grid(p_remain,
+               p_max,
+               p_duration,
+               ncol = 1, align = "v")
 
 
 all_results_abx = data.frame()
 
-for(abx_con in c(0.25, 0.5, 1, 2)){
+for(abx_con in seq(0.2, 2, 0.2)){
   
   results_con = data.frame(abx_start = c(rep(0,25), 1:24),
                            phage_start = c(0:24, rep(0,24)),
@@ -730,18 +747,18 @@ for(abx_con in c(0.25, 0.5, 1, 2)){
     
     event_dat = data.frame(var = c("ery", "tet", "Pl"),
                            time = c(results_con$abx_start[i], results_con$abx_start[i], results_con$phage_start[i]),
-                           value = c(abx_con, abx_con, 1e9),
+                           value = c(abx_con, abx_con, 1e8),
                            method = c("add", "add", "add"))
     
     #times = seq(0, max(24+results_con$abx_start[i], 24+results_con$phage_start[i]), 1)
     
     results = phage_tr_model(parameters, yinit, times, event_dat)
     
-    results_con$max_bet[i] = max(max(results$Bet, na.rm = T), 0.01)
+    results_con$max_bet[i] = max(results$Bet, na.rm = T)
     
     results_con$duration_bet[i] = sum(results$Bet>1)/10
     
-    results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1), 0.01)
+    results_con$end_bacteria[i] = max(tail(results$Be,1) + tail(results$Bt,1) + tail(results$Bet,1),0)
     
   }
   
@@ -753,74 +770,77 @@ for(abx_con in c(0.25, 0.5, 1, 2)){
 }
 
 
-p_duration = ggplot(all_results_abx) +
-  geom_line(aes(diff, duration_bet, colour = as.factor(abx_con)), size = 0.8) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+all_results_abx_cat = all_results_abx %>%
+  mutate(duration_bet_cat = cut(duration_bet, breaks = c(0, 0.99, 10, 20, 30, 40, 50),
+                                labels = c("0", "1 - 10", "10 - 20", "20 - 30", "30 - 40", "40 - 50"),
+                                include.lowest = T)) %>%
+  mutate(max_bet_cat = cut(max_bet, breaks = c(0, 10^0, 10^1, 10^2, 10^4, 10^6, 10^8, 10^10),
+                           labels = c("0", "1 - 10", "10 - 10^2", "10^2 - 10^4", "10^4 - 10^6",
+                                      "10^6 - 10^8", "10^8 - 10^10"),
+                           include.lowest = T)) %>%
+  mutate(end_bacteria_cat = cut(end_bacteria, breaks = c(0, 10^0, 10^1, 10^2, 10^4, 10^6, 10^8, 10^10),
+                                labels = c("0", "1 - 10", "10 - 10^2", "10^2 - 10^4", "10^4 - 10^6",
+                                           "10^6 - 10^8", "10^8 - 10^10"),
+                                include.lowest = T))
+
+
+p_duration = ggplot(all_results_abx_cat) +
+  geom_tile(aes(x = diff, y = as.factor(abx_con), fill = as.factor(duration_bet_cat))) +
   theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Double-resistant bacteria presence time",
-       colour = "Antibiotics added\n(mg/L):") +
-  scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(limits = c(0, 47)) +
-  scale_color_manual(values = palette) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
-
-p_max = ggplot(all_results_abx) +
-  geom_line(aes(diff, max_bet, colour = as.factor(abx_con)), size = 0.8) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Maximum double-resistant bacteria",
-       colour = "Antibiotics added\n(mg/L):") +
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_greens) +
   scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x, n = 6),
-                     labels = c("x", "0", expression(10^0),
-                                expression(10^2), expression(10^4), expression(10^6),
-                                expression(10^8), "x")) +
-  scale_color_manual(values = palette) +
-  coord_cartesian(ylim = c(0.01, 1e9)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Antibiotics (mg/L)",
+       fill = "Double-resistant bacteria\npresence time (h)")
+
+p_max = ggplot(all_results_abx_cat) +
+  geom_tile(aes(x = diff, y = as.factor(abx_con), fill = as.factor(max_bet_cat))) +
+  theme_bw() +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
-
-p_remain = ggplot(all_results_abx) +
-  geom_line(aes(diff, end_bacteria, colour = as.factor(abx_con)), size = 0.8) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
-  theme_bw() +
-  labs(x = "Antibiotics addition time, relative to phage addition time",
-       y = "Total remaining bacteria after 48h",
-       colour = "Antibiotics added\n(mg/L):") +
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_greens) +
   scale_x_continuous(breaks = seq(-24,24,4)) +
-  scale_y_continuous(trans=log10_trans(),
-                     breaks=trans_breaks("log10", function(x) 10^x, n = 6),
-                     labels = c("x", "0", expression(10^0),
-                                expression(10^2), expression(10^4), expression(10^6),
-                                expression(10^8), "x")) +
-  scale_color_manual(values = palette) +
-  coord_cartesian(ylim = c(0.01, 1e9)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Antibiotics (mg/L)",
+       fill = "Maximum double-resistant\nbacteria (cfu/mL)")
+
+p_remain = ggplot(all_results_abx_cat) +
+  geom_tile(aes(x = diff, y = as.factor(abx_con), fill = as.factor(end_bacteria_cat))) +
+  theme_bw() +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=12),
-        legend.text = element_text(size=12),
+        legend.text = element_markdown(size=12),
         strip.text = element_text(size=12),
-        legend.title = element_text(size=12))  
+        legend.title = element_text(size=12)) +
+  scale_fill_manual(values = palette_greens) +
+  scale_x_continuous(breaks = seq(-24,24,4)) +
+  labs(x = "Antibiotics addition time, relative to phage",
+       y = "Antibiotics (mg/L)",
+       fill = "Total bacteria\nremaining (cfu/mL)")
 
 
-pa = plot_grid(p_remain + theme(legend.position = "none"),
-               p_max + theme(legend.position = "none"),
-               p_duration + theme(legend.position = "none"),
-               get_legend(p_remain + theme(legend.position = "bottom")),
-               ncol = 1,
-               rel_heights = c(1,1,1,0.15,0.15))
+pa = plot_grid(p_remain,
+               p_max,
+               p_duration,
+               ncol = 1, align = "v")
+
+ptop = plot_grid(pa, pb,
+                 nrow = 1,
+                 labels = c("a)", "b)"),
+                 hjust = 0, vjust = 1)
 
 
 
+
+#expanded view
 abx_time = test_diffs[1]
 pha_time = 0
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
@@ -870,12 +890,12 @@ p_abx1_pha1 = ggplot(results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
-        plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 21, fill = "black", size = 5)
+        plot.title = element_text(face = "bold"))
+#geom_point(aes(x=47, y=10^11.5), pch = 21, fill = "black", size = 5)
 
 
 abx_time = test_diffs[2]
-pha_time = 0
+pha_time = 0 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -923,13 +943,13 @@ p_abx6_pha1 = ggplot(results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
-        plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 22, fill = "black", size = 5)
+        plot.title = element_text(face = "bold"))
+#geom_point(aes(x=47, y=10^11.5), pch = 22, fill = "black", size = 5)
 
 
 
 abx_time = test_diffs[3]
-pha_time = 0
+pha_time = 0 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -977,13 +997,13 @@ p_abx8_pha1 = ggplot(results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
-        plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 8, fill = "black", size = 5)
+        plot.title = element_text(face = "bold"))
+#geom_point(aes(x=47, y=10^11.5), pch = 8, fill = "black", size = 5)
 
 
 
 abx_time = test_diffs[4]
-pha_time = 0
+pha_time = 0 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
                        value = c(1, 1, test_pha_con),
@@ -1031,13 +1051,11 @@ p_abx16_pha1 = ggplot(results) +
         legend.text = element_text(size=12),
         legend.title = element_text(size=12),
         strip.text.x = element_text(size=12),
-        plot.title = element_text(face = "bold")) +
-  geom_point(aes(x=47, y=10^11.5), pch = 24, fill = "black", size = 5)
+        plot.title = element_text(face = "bold"))
+#geom_point(aes(x=47, y=10^11.5), pch = 24, fill = "black", size = 5)
 
 
-final_plot = plot_grid(pa,
-                       NULL,
-                       pb,
+final_plot = plot_grid(ptop,
                        NULL,
                        plot_grid(
                          plot_grid(p_abx1_pha1 + theme(legend.position = "none"),
@@ -1045,11 +1063,13 @@ final_plot = plot_grid(pa,
                                    p_abx8_pha1 + theme(legend.position = "none"),
                                    p_abx16_pha1 + theme(legend.position = "none"),
                                    ncol = 2),
-                         get_legend(p_abx1_pha1 + theme(legend.position = "bottom")),
-                         ncol = 1,
-                         rel_heights = c(1,0.05)),
-                       ncol = 5,
-                       rel_widths = c(0.6,0.05,0.6,0.05,1.1),
-                       labels = c("a)", "", "b)", "", "c)"))
+                         get_legend(p_abx1_pha1 + theme(legend.position = "right")),
+                         nrow = 1,
+                         rel_widths = c(1,0.1)),
+                       ncol = 1,
+                       rel_heights = c(1.3, 0.05, 1),
+                       labels = c("", "" ,"c)"), hjust = 0)
 
-ggsave(here::here("Figures", "suppfig5.png"), final_plot, height = 12, width = 17)
+ggsave(here::here("Figures", "suppfig5.png"), final_plot, height = 15, width = 13)
+
+

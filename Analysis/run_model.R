@@ -50,12 +50,12 @@ yinit = c(Be = 1e9,
           ery = 0,
           tet = 0)
 
-abx_time = 5
+abx_time = 4
 pha_time = 0
 extra_label = "" #"morep"
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(abx_time, abx_time, pha_time),
-                       value = c(1, 1, 1e8),
+                       value = c(1.4, 1.4, 1e8),
                        method = c("add", "add", "add"))
 
 results = phage_tr_model(parameters, yinit, times, event_dat, T)
