@@ -5,10 +5,10 @@ library(scales)
 library(cowplot)
 library(dplyr)
 
-source(here::here("Model", "model.R"))
+source(here::here("Model", "new_model.R"))
 
 abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
-pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
+pha_params = read.csv(here::here("Parameters", "pha_params_new.csv"))
 bac_params = read.csv(here::here("Parameters", "bac_params.csv"))
 
 parameters = c(mu_e = bac_params$mu_e[1],
@@ -19,6 +19,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                L = pha_params$L,
                tau = pha_params$tau,
                alpha = 0,
+               P50 = pha_params$P50,
                gamma = 0,
                ery_kill_max_BE = abx_params$kmax[1],
                ery_kill_max_BT = abx_params$kmax[3],
@@ -103,13 +104,12 @@ results = results %>% filter(times > 6)
 opti_concentrations = optim(c(1.1,1.1),
                             optim_concentrations,
                             target = results$Be+results$Bt,
-                            lower = c(1,1), upper = c(10,10))
+                            lower = c(1,1), upper = c(2,2))
 
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(0, 0, 100) ,
-                       value = c(4.58, 1.14, 1e9),
-                       #value = c(opti_concentrations$par[1], opti_concentrations$par[2], 1e9),
+                       value = c(opti_concentrations$par[1], opti_concentrations$par[2], 1e9),
                        method = c("add", "add", "add"))
 
 cat(opti_concentrations$par[1], opti_concentrations$par[2])

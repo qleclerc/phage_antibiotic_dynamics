@@ -13,6 +13,8 @@ phage_tr_model <- function(parameters, init.state, times, event_dat, phage_activ
     gamma = parameters[["gamma"]]
     alpha = parameters[["alpha"]]
     tau = parameters[["tau"]]
+    P50 = parameters[["P50"]]
+    
     
     ery_kill_max_BE = parameters[["ery_kill_max_BE"]]
     tet_kill_max_BE = parameters[["tet_kill_max_BE"]]
@@ -74,16 +76,13 @@ phage_tr_model <- function(parameters, init.state, times, event_dat, phage_activ
     
     link = (1 - N/Nmax)
     
-    lambda = (1 - exp(-beta * N))
-    phi_Pl = (1 - exp(-lambda * Pl/N))
-    phi_Pe = (1 - exp(-lambda * Pe/N))
-    phi_Pt = (1 - exp(-lambda * Pt/N))
+    F_Pl = beta * (Pl)/(1+Pl/P50)
+    F_Pe = beta * (Pe)/(1+Pe/P50)
+    F_Pt = beta * (Pt)/(1+Pt/P50)
     
-    lambda_past = (1 - exp(-beta * N_past))
-    phi_Pl_past = (1 - exp(-lambda_past * Pl_past/N_past))
-    phi_Pe_past = (1 - exp(-lambda_past * Pe_past/N_past))
-    phi_Pt_past = (1 - exp(-lambda_past * Pt_past/N_past))
+    F_Pl_past = beta * (Pl_past)/(1+Pl_past/P50)
     
+
     ery_effect_BE = ery_kill_max_BE * ery^pow_ery_BE/(EC_ery_BE^pow_ery_BE+ery^pow_ery_BE)
     tet_effect_BE = tet_kill_max_BE * tet^pow_tet_BE/(EC_tet_BE^pow_tet_BE+tet^pow_tet_BE)
     ery_effect_BT = ery_kill_max_BT * ery^pow_ery_BT/(EC_ery_BT^pow_ery_BT+ery^pow_ery_BT)
@@ -103,32 +102,29 @@ phage_tr_model <- function(parameters, init.state, times, event_dat, phage_activ
     L_T = L * max(0, (link - tet_effect_BT - ery_effect_BT)) + 1
     
     
-    dBe = (mu_e * link) * (Be - ((phi_Pl + phi_Pt - (phi_Pl*phi_Pt)) * Be) ) -
-      (phi_Pl + phi_Pt - (phi_Pl*phi_Pt)) * Be -  (tet_effect_BE + ery_effect_BE)*mu_e*Be
-    dBt = (mu_t * link) * (Bt - ((phi_Pl + phi_Pe - (phi_Pl*phi_Pe)) * Bt) ) -
-      (phi_Pl + phi_Pe - (phi_Pl*phi_Pe)) * Bt - (ery_effect_BT + tet_effect_BT)*mu_t*Bt
-    dBet = mu_et * link * (Bet - (phi_Pl*Bet) ) - phi_Pl * Bet +
-      (phi_Pe - (phi_Pl*phi_Pe)) * Bt + (phi_Pt - (phi_Pl*phi_Pt)) * Be - (ery_effect_BET + tet_effect_BET)*mu_et*Bet
+    dBe = (mu_e * link) * Be - F_Pl * Be - F_Pt * Be - (tet_effect_BE + ery_effect_BE)*mu_e*Be
+    dBt = (mu_t * link) * Bt - F_Pl * Bt - F_Pe * Bt - (ery_effect_BT + tet_effect_BT)*mu_t*Bt
+    dBet = mu_et * link * Bet - F_Pl * Bet + F_Pe * Bt + F_Pt * Be - (ery_effect_BET + tet_effect_BET)*mu_et*Bet
     
     # if(time %% 1 == 0) cat(time, lambda, "\n")
     
-    dPl = phi_Pl_past * L_E * (1-alpha) * Be_past +
-      phi_Pl_past * L_T * (1-alpha) * Bt_past +
-      phi_Pl_past * L_ET * (1-2*alpha) * Bet_past -
-      lambda * Pl - gamma * Pl
-    dPe = phi_Pl_past * L_E * alpha * Be_past +
-      phi_Pl_past * L_ET * alpha * Bet_past -
-      lambda * Pe - gamma * Pe 
-    dPt = phi_Pl_past * L_T * alpha * Bt_past +
-      phi_Pl_past * L_ET * alpha * Bet_past -
-      lambda * Pt - gamma * Pt 
+    dPl = F_Pl_past * L_E * (1-alpha) * Be_past +
+      F_Pl_past * L_T * (1-alpha) * Bt_past +
+      F_Pl_past * L_ET * (1-2*alpha) * Bet_past -
+      F_Pl * N - gamma * Pl
+    dPe = F_Pl_past * L_E * alpha * Be_past +
+      F_Pl_past * L_ET * alpha * Bet_past -
+      F_Pe * Pe - gamma * Pe 
+    dPt = F_Pl_past * L_T * alpha * Bt_past +
+      F_Pl_past * L_ET * alpha * Bet_past -
+      F_Pt * Pt - gamma * Pt 
     
     dery = -ery*gamma_ery
     dtet = -tet*gamma_tet
     
     if(phage_activity){
-      Bet_lysis = unname(phi_Pl * Bet)
-      Bet_new = unname(mu_et * link * (Bet - (phi_Pl*Bet) ))
+      Bet_lysis = unname(F_Pl * Bet)
+      Bet_new = unname(mu_et * link * Bet)
       return(list(c(dBe, dBt, dBet, dPl, dPe, dPt, dery, dtet),
                   Bet_lysis = Bet_lysis, Bet_new = Bet_new))
     } else {

@@ -7,13 +7,13 @@ library(dplyr)
 library(RColorBrewer)
 library(epiR)
 
-source(here::here("Model", "model.R"))
-set.seed(42)
+source(here::here("Model", "new_model.R"))
+set.seed(40)
 
-palette = c(brewer.pal(n = 9, name = "BuGn")[c(3,4,6,8)], "#000000")
+palette = c(brewer.pal(n = 9, name = "BuGn")[c(3,4,6,8,9)], "#000000")
 
 abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
-pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
+pha_params = read.csv(here::here("Parameters", "pha_params_new.csv"))
 bac_params = read.csv(here::here("Parameters", "bac_params.csv"))
 
 parameters = c(mu_e = bac_params$mu_e[1],
@@ -24,6 +24,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                L = pha_params$L,
                tau = pha_params$tau,
                alpha = pha_params$alpha,
+               P50 = pha_params$P50,
                gamma = 0,
                ery_kill_max_BE = abx_params$kmax[1],
                ery_kill_max_BT = abx_params$kmax[3],
@@ -65,7 +66,7 @@ event_dat = data.frame(var = c("ery", "tet", "Pl"),
 
 all_results = data.frame()
 
-for(tr_param in c(1e-6, 1e-7, 1e-8, 1e-9, 1e-10)){
+for(tr_param in c(1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11)){
   
   parameters[["alpha"]] = tr_param
   
@@ -102,9 +103,10 @@ pa = ggplot(all_results) +
   scale_linetype_manual(breaks = c("Single-resistant", "Double-resistant"),
                         values = c("dashed", "solid")) +
   scale_color_manual(values = palette, 
-                     breaks = c("1e-10", "1e-09", "1e-08",
+                     breaks = c("1e-11", "1e-10", "1e-09", "1e-08",
                                 "1e-07", "1e-06"),
-                     labels = c(bquote("1 \u00D7 " * 10^-10),
+                     labels = c(bquote("1 \u00D7 " * 10^-11),
+                                bquote("1 \u00D7 " * 10^-10),
                                 bquote("1 \u00D7 " * 10^-9),
                                 bquote("1 \u00D7 " * 10^-8),
                                 bquote("1 \u00D7 " * 10^-7),
@@ -124,7 +126,7 @@ event_dat = data.frame(var = c("ery", "tet", "Pl"),
 
 all_results = data.frame()
 
-for(tr_param in c(1e-6, 1e-7, 1e-8, 1e-9, 1e-10)){
+for(tr_param in c(1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11)){
   
   parameters[["alpha"]] = tr_param
   
@@ -161,9 +163,10 @@ pb = ggplot(all_results) +
   scale_linetype_manual(breaks = c("Single-resistant", "Double-resistant"),
                         values = c("dashed", "solid")) +
   scale_color_manual(values = palette, 
-                     breaks = c("1e-10", "1e-09", "1e-08",
+                     breaks = c("1e-11", "1e-10", "1e-09", "1e-08",
                                 "1e-07", "1e-06"),
-                     labels = c(bquote("1 \u00D7 " * 10^-10),
+                     labels = c(bquote("1 \u00D7 " * 10^-11),
+                                bquote("1 \u00D7 " * 10^-10),
                                 bquote("1 \u00D7 " * 10^-9),
                                 bquote("1 \u00D7 " * 10^-8),
                                 bquote("1 \u00D7 " * 10^-7),
@@ -183,7 +186,7 @@ event_dat = data.frame(var = c("ery", "tet", "Pl"),
 
 all_results = data.frame()
 
-for(tr_param in c(1e-6, 1e-7, 1e-8, 1e-9, 1e-10)){
+for(tr_param in c(1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11)){
   
   parameters[["alpha"]] = tr_param
   
@@ -220,9 +223,10 @@ pc = ggplot(all_results) +
   scale_linetype_manual(breaks = c("Single-resistant", "Double-resistant"),
                         values = c("dashed", "solid")) +
   scale_color_manual(values = palette, 
-                     breaks = c("1e-10", "1e-09", "1e-08",
+                     breaks = c("1e-11", "1e-10", "1e-09", "1e-08",
                                 "1e-07", "1e-06"),
-                     labels = c(bquote("1 \u00D7 " * 10^-10),
+                     labels = c(bquote("1 \u00D7 " * 10^-11),
+                                bquote("1 \u00D7 " * 10^-10),
                                 bquote("1 \u00D7 " * 10^-9),
                                 bquote("1 \u00D7 " * 10^-8),
                                 bquote("1 \u00D7 " * 10^-7),
@@ -242,11 +246,12 @@ all_results = data.frame(mu_e = runif(500, bac_params$mu_e[2], bac_params$mu_e[3
                          mu_t = runif(500, bac_params$mu_t[2], bac_params$mu_t[3]),
                          mu_et = runif(500, bac_params$mu_et[2], bac_params$mu_et[3]),
                          Nmax = bac_params$Nmax[1],
-                         beta = runif(500, pha_params$beta_0.975, pha_params$beta_0.025),
+                         beta = runif(500, pha_params$beta_0.025, pha_params$beta_0.975),
+                         P50 = runif(500, pha_params$P50_0.025, pha_params$P50_0.975),
                          L = runif(500, pha_params$L_0.025, pha_params$L_0.975),
                          tau = runif(500, pha_params$tau_0.025, pha_params$tau_0.975),
-                         alpha = runif(500, pha_params$alpha_0.975, pha_params$alpha_0.025),
-                         gamma = runif(500, 0, 0.1),
+                         alpha = runif(500, pha_params$alpha_0.025, pha_params$alpha_0.975),
+                         gamma = runif(500, 0, 0.01),
                          ery_kill_max_BE = abx_params$kmax[1],
                          ery_kill_max_BT = abx_params$kmax[3],
                          ery_kill_max_BET = abx_params$kmax[5],
@@ -287,7 +292,7 @@ for(i in 1:nrow(all_results)){
   
   if(i %% round(nrow(all_results)/10) == 0) cat(i/round(nrow(all_results))*100, "% done\n")
   
-  parameters = as.vector(all_results[i,c(1:29)])
+  parameters = as.vector(all_results[i,c(1:30)])
   
   event_dat = data.frame(var = c("ery", "tet", "Pl"),
                          time = c(0, 0, 0),
@@ -303,7 +308,7 @@ for(i in 1:nrow(all_results)){
 
 all_results_m = all_results
 all_results = all_results_m %>%
-  select(mu_e, mu_t, mu_et, beta, L, tau,
+  select(mu_e, mu_t, mu_et, beta, P50, L, tau,
          alpha, gamma, gamma_ery, gamma_tet, end_bacteria)
 
 cor_end_bac = epi.prcc(all_results)
@@ -311,7 +316,7 @@ cor_end_bac$param = colnames(all_results)[-ncol(all_results)]
 cor_end_bac$cor = "end_bac"
 
 all_results = all_results_m %>%
-  select(mu_e, mu_t, mu_et, beta, L, tau,
+  select(mu_e, mu_t, mu_et, beta, P50, L, tau,
          alpha, gamma, gamma_ery, gamma_tet, max_bet)
 
 cor_max_bet = epi.prcc(all_results)
@@ -321,7 +326,7 @@ cor_max_bet$cor = "max_bet"
 all_results = rbind(cor_end_bac, cor_max_bet)
 all_results$param = as.factor(all_results$param)
 all_results$param = factor(all_results$param,
-                           levels = levels(all_results$param)[c(2,6,10,1,3:5,7,9,8)])
+                           levels = levels(all_results$param)[c(2,10,6,11,1,3:5,7,9,8)])
 
 pd = ggplot(all_results) +
   geom_pointrange(aes(x = param, y = est, group = cor, 
@@ -341,6 +346,7 @@ pd = ggplot(all_results) +
   labs(colour = "", x = "\n", y = "Correlation coefficient") +
   scale_color_discrete(labels = c("Remaining bacteria", bquote("Maximum B"[ET]))) +
   scale_x_discrete(labels = c(bquote(beta),
+                              bquote(P50),
                               bquote(delta^"max"),
                               bquote(tau),
                               bquote(alpha),
@@ -351,12 +357,12 @@ pd = ggplot(all_results) +
                               bquote(mu[" "*T]^max), 
                               bquote(mu[" "*ET]^max))) +
   coord_cartesian(clip = "off", ylim = c(-1,1)) +
-  annotate("text", x = 2.5, y = -1.40, label = "Phage parameters") +
-  annotate("text", x = 6, y = -1.40, label = "Decay parameters") +
-  annotate("text", x = 9, y = -1.40, label = "Bacteria parameters") +
-  annotate("segment", x = 1, xend = 4, y = -1.33, yend = -1.33) +
-  annotate("segment", x = 5, xend = 7, y = -1.33, yend = -1.33) +
-  annotate("segment", x = 8, xend = 10, y = -1.33, yend = -1.33)
+  annotate("text", x = 3, y = -1.40, label = "Phage parameters") +
+  annotate("text", x = 7, y = -1.40, label = "Decay parameters") +
+  annotate("text", x = 10, y = -1.40, label = "Bacteria parameters") +
+  annotate("segment", x = 1, xend = 5, y = -1.33, yend = -1.33) +
+  annotate("segment", x = 6, xend = 8, y = -1.33, yend = -1.33) +
+  annotate("segment", x = 9, xend = 11, y = -1.33, yend = -1.33)
 
 
 ## final plot ############

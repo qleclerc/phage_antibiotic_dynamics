@@ -8,10 +8,10 @@ library(cowplot)
 library(dplyr)
 library(reshape2)
 
-source(here::here("Model", "model.R"))
+source(here::here("Model", "new_model.R"))
 
 abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
-pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
+pha_params = read.csv(here::here("Parameters", "pha_params_new.csv"))
 bac_params = read.csv(here::here("Parameters", "bac_params.csv"))
 
 parameters = c(mu_e = bac_params$mu_e[1],
@@ -22,6 +22,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                L = pha_params$L,
                tau = pha_params$tau,
                alpha = 0,
+               P50 = pha_params$P50,
                gamma = 0,
                ery_kill_max_BE = abx_params$kmax[1],
                ery_kill_max_BT = abx_params$kmax[3],
@@ -172,7 +173,7 @@ all_results = rbind(all_results, results)
 
 ## PHAGE ONLY, TRANSDUCTION ##########
 
-parameters[["alpha"]] = pha_params$alpha
+parameters[["alpha"]] = 1.012/1e8
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(100, 100, 0) ,
@@ -434,7 +435,7 @@ all_results = rbind(all_results, results)
 
 ## PHAGE ONLY, TRANSDUCTION ##########
 
-parameters[["alpha"]] = pha_params$alpha
+parameters[["alpha"]] = 1.012/1e8
 
 event_dat = data.frame(var = c("ery", "tet", "Pl"),
                        time = c(100, 100, 0) ,

@@ -5,10 +5,10 @@ library(scales)
 library(cowplot)
 library(dplyr)
 
-source(here::here("Model", "model.R"))
+source(here::here("Model", "new_model.R"))
 
 abx_params = read.csv(here::here("Parameters", "abx_params.csv"))
-pha_params = read.csv(here::here("Parameters", "pha_params.csv"))
+pha_params = read.csv(here::here("Parameters", "pha_params_new.csv"))
 bac_params = read.csv(here::here("Parameters", "bac_params.csv"))
 
 parameters = c(mu_e = bac_params$mu_e[1],
@@ -19,6 +19,7 @@ parameters = c(mu_e = bac_params$mu_e[1],
                L = pha_params$L,
                tau = pha_params$tau,
                alpha = pha_params$alpha,
+               P50 = pha_params$P50,
                gamma = 0,
                ery_kill_max_BE = abx_params$kmax[1],
                ery_kill_max_BT = abx_params$kmax[3],
@@ -68,7 +69,7 @@ p1 = ggplot(results) +
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 1e10)) +
+  coord_cartesian(ylim = c(0.1, 1e11)) +
   scale_x_continuous(breaks=seq(0,max(results$time),4))+
   theme_bw() +
   labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
@@ -101,7 +102,7 @@ p2 = ggplot(results) +
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 1e10)) +
+  coord_cartesian(ylim = c(0.1, 1e11)) +
   scale_x_continuous(breaks=seq(0,max(results$time),4))+
   theme_bw() +
   labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
@@ -134,7 +135,7 @@ p3 = ggplot(results) +
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 1e10)) +
+  coord_cartesian(ylim = c(0.1, 1e11)) +
   scale_x_continuous(breaks=seq(0,max(results$time),4))+
   theme_bw() +
   labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
@@ -167,7 +168,7 @@ p4 = ggplot(results) +
   scale_y_continuous(trans=log10_trans(),
                      breaks=trans_breaks("log10", function(x) 10^x),
                      labels=trans_format("log10", math_format(10^.x))) +
-  coord_cartesian(ylim = c(0.1, 1e10)) +
+  coord_cartesian(ylim = c(0.1, 1e11)) +
   scale_x_continuous(breaks=seq(0,max(results$time),4))+
   theme_bw() +
   labs(y = "cfu or pfu per mL", x = "Time (hours)", colour = "Organism:") +
